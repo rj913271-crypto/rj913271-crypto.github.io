@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Leaderboard Final</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: #fdf1e1; color: #333; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    .top-bg { background: linear-gradient(180deg, #f45a32 0%, #ff9545 100%); padding: 50px 20px 60px 20px; text-align: center; border-bottom-left-radius: 45px; border-bottom-right-radius: 45px; flex-shrink: 0; }
+    .nav-header { display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 60px; }
+    .back-btn { background: rgba(255,255,255,0.2); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+    .podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-top: 20px; }
+    .podium-item { background: #681212; color: white; border-radius: 25px 25px 0 0; padding: 15px 5px; text-align: center; width: 105px; position: relative; display: flex; flex-direction: column; align-items: center; }
+    .rank-1 { height: 210px; width: 120px; background: #f45a32; z-index: 2; border-radius: 35px 35px 0 0; }
+    .rank-2 { height: 175px; } .rank-3 { height: 165px; }
+    .user-img { width: 55px; height: 55px; border-radius: 50%; border: 3px solid #ff9545; margin-bottom: 8px; object-fit: cover; background: #fff; }
+    .rank-1 .user-img { width: 75px; height: 75px; border-color: #ffd700; margin-top: -38px; }
+    .crown { position: absolute; top: -75px; left: 50%; transform: translateX(-50%); font-size: 40px; color: #ffd700; }
+    .podium-name { font-size: 11px; font-weight: 700; margin: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 90%; }
+    .p-level { font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+    .podium-score { background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin-top: auto; margin-bottom: 5px; }
+    .list-container { flex: 1; background: white; margin-top: -30px; border-top-left-radius: 40px; border-top-right-radius: 40px; padding: 40px 20px 100px; overflow-y: auto; z-index: 5; }
+    .list-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f8f8f8; }
+    .list-rank { width: 35px; height: 35px; background: #fdf1e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #681212; margin-left: auto;}
+    .bottom-nav { position: fixed; bottom: 15px; left: 5%; width: 90%; background: white; display: flex; justify-content: space-around; padding: 15px; border-radius: 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); z-index: 1000; }
+    .nav-item { text-align: center; color: #bbb; font-size: 10px; font-weight: 600; text-decoration: none; }
+    .nav-item.active { color: #f45a32; }
+    .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="top-bg">
+    <div class="nav-header">
+        <a href="Home.html" class="back-btn" id="backBtn"><i class="fas fa-chevron-left"></i></a>
+        <div style="font-weight:800;font-size:19px;color:white;letter-spacing:1px;">LEADERBOARD</div>
+        <div style="width:42px;"></div>
+    </div>
+    <div class="podium">
+        <div class="podium-item rank-2">
+            <img id="img-2" src="" class="user-img">
+            <p class="podium-name" id="name-2">---</p>
+            <div id="lvl-2" class="p-level"></div>
+            <div class="podium-score">🪙 <span id="score-2">0</span></div>
+        </div>
+        <div class="podium-item rank-1">
+            <i class="fas fa-crown crown"></i>
+            <img id="img-1" src="" class="user-img">
+            <p class="podium-name" id="name-1">---</p>
+            <div id="lvl-1" class="p-level"></div>
+            <div class="podium-score">🪙 <span id="score-1">0</span></div>
+        </div>
+        <div class="podium-item rank-3">
+            <img id="img-3" src="" class="user-img">
+            <p class="podium-name" id="name-3">---</p>
+            <div id="lvl-3" class="p-level"></div>
+            <div class="podium-score">🪙 <span id="score-3">0</span></div>
+        </div>
+    </div>
+</div>
+<div class="list-container" id="list-container"></div>
+<div class="bottom-nav">
+    <a href="Home.html" class="nav-item" id="navHome"><i class="fas fa-home"></i>Home</a>
+    <a href="Leaderboard.html" class="nav-item active" id="navLeader"><i class="fas fa-poll-h"></i>Leader</a>
+    <a href="refer frend.html" class="nav-item" id="navRefer"><i class="fas fa-user-friends"></i>Refer</a>
+    <a href="withdrawal mony.html" class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i>Profile</a>
+</div>
+
+<script>
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const u = p.get('uid') || localStorage.getItem("user_mobile");
+    if (!u || u === "null" || u === "" || u === "undefined") {
+        window.location.replace("Login.html");
+    }
+})();
+  
+var firebaseConfig = { apiKey: "AIzaSyBrr8T6MhvyCR4ocLqkBjZFlkLbQXAEwyk", databaseURL: "https://online-earning-app-607bb-default-rtdb.firebaseio.com" };
+firebase.initializeApp(firebaseConfig); 
+var db = firebase.database();
+
+const params = new URLSearchParams(window.location.search);
+const uid = params.get('uid') || "Guest";
+
+if(uid !== "Guest"){
+    const ids = ["backBtn", "navHome", "navLeader", "navRefer", "navProfile"];
+    ids.forEach(id => {
+        let el = document.getElementById(id);
+        if(el) { 
+            let href = el.getAttribute('href'); 
+            if(href && href !== "#") el.href = encodeURI(href) + "?uid=" + uid; 
+        }
+    });
+}
+
+function getLevel(earnings) {
+    let e = Number(earnings);
+    if (e >= 10000) return { n: "Diamond", c: "#00d2ff", i: "fa-gem" };
+    if (e >= 1000) return { n: "Gold", c: "#ffae00", i: "fa-crown" };
+    if (e >= 100) return { n: "Silver", c: "#95a5a6", i: "fa-medal" };
+    return { n: "Bronze", c: "#cd7f32", i: "fa-award" };
+}
+
+db.ref("users").on("value", function(snap) {
+    if(!snap.exists()) return;
+    
+    let usersArray = []; 
+    snap.forEach(child => { 
+        let val = child.val(); 
+        let totalEarnings = Number(val.lifetime_earnings || 0); 
+        usersArray.push({ 
+            name: val.name || child.key, 
+            score: totalEarnings 
+        }); 
+    });
+    
+    usersArray.sort((a, b) => b.score - a.score);
+    // CHANGE: Filtered for Top 50 instead of Top 10
+    let top50 = usersArray.slice(0, 50);
+
+    for(let i=1; i<=3; i++) { 
+        let user = top50[i-1];
+        let pIndex = i === 1 ? 1 : (i === 2 ? 2 : 3);
+        let lvlEl = document.getElementById(`lvl-${pIndex}`);
+        
+        if(user) { 
+            document.getElementById(`name-${pIndex}`).innerText = user.name; 
+            document.getElementById(`score-${pIndex}`).innerText = user.score.toLocaleString(); 
+            document.getElementById(`img-${pIndex}`).src = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.name;
+            
+            let lvl = getLevel(user.score);
+            lvlEl.innerHTML = `<i class="fas ${lvl.i}"></i> ${lvl.n}`;
+            lvlEl.style.color = lvl.c;
+            lvlEl.style.display = "flex";
+        } else {
+            lvlEl.style.display = "none";
+        }
+    }
+
+    let listHTML = ""; 
+    // CHANGE: Logic now supports Rank 4 to Rank 50
+    if(top50.length > 3) { 
+        for(let i=3; i<top50.length; i++) { 
+            let lvl = getLevel(top50[i].score);
+            listHTML += `
+                <div class="list-item">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${top50[i].name}" style="width:45px;border-radius:50%;margin-right:15px;background:#f0f0f0;">
+                    <div style="flex:1;">
+                        <p style="font-weight:700;font-size:14px;">${top50[i].name}</p>
+                        <p style="font-size:10px; font-weight:800; color:${lvl.c}; text-transform:uppercase; display:flex; align-items:center; gap:4px;">
+                            <i class="fas ${lvl.i}"></i> ${lvl.n}
+                        </p>
+                    </div>
+                    <div style="text-align:right; margin-right:15px;">
+                        <p style="color:#f39c12;font-weight:700;font-size:13px;">🪙 ${top50[i].score.toLocaleString()}</p>
+                    </div>
+                    <div class="list-rank">${i+1}</div>
+                </div>`; 
+        } 
+    }
+    document.getElementById("list-container").innerHTML = listHTML;
+});
+</script>
+</body>
+</html>

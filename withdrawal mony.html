@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Profile - Smart Withdrawal System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const u = p.get('uid') || localStorage.getItem("user_mobile");
+    if (!u || u === "null" || u === "" || u === "undefined") {
+        window.location.replace("Login.html");
+    }
+})();
+
+function checkNet() {
+    if (!navigator.onLine) {
+        document.body.style.pointerEvents = "none";
+        document.body.style.opacity = "0.6";
+        alert("❌ No Internet!");
+        return false;
+    }
+    document.body.style.pointerEvents = "all";
+    document.body.style.opacity = "1";
+    return true;
+}
+setInterval(checkNet, 3000);
+</script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: #fdf1e1; color: #333; min-height: 100vh; padding-bottom: 120px; }
+    .bg-gradient { background: linear-gradient(180deg, #f45a32 0%, #ff9545 40%, #fdf1e1 100%); height: 550px; width: 100%; position: absolute; top: 0; z-index: -1; }
+    .nav-header { display: flex; justify-content: space-between; align-items: center; padding: 50px 25px 20px; color: white; }
+    .back-btn { background: rgba(255,255,255,0.2); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; }
+    .profile-header { text-align: center; color: white; margin-bottom: 25px; }
+    .user-big-avatar { width: 85px; height: 85px; border-radius: 50%; border: 3px solid white; margin-bottom: 10px; background: #eee; object-fit: cover; }
+    #userLevelDisplay { background: white; padding: 5px 15px; border-radius: 50px; font-size: 12px; font-weight: 800; margin-top: 10px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); text-transform: uppercase; }
+    .balance-card { background: #681212; width: 88%; margin: 0 auto; border-radius: 30px; padding: 25px; text-align: center; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.25); }
+    .coin-display { font-size: 36px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+    .money-rs-tag { background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 15px; display: inline-flex; align-items: center; gap: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2); }
+    .section-title { padding: 30px 25px 12px; font-size: 18px; font-weight: 700; color: #222; }
+    
+    /* REDEEM CARDS DESIGN */
+    .withdraw-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+    .method-card { background: white; padding: 20px; border-radius: 25px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.04); cursor: pointer; }
+    .method-card img { width: 55px; height: 55px; margin-bottom: 10px; object-fit: contain; }
+
+    /* MODAL STYLES */
+    .modal-overlay { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+    .m-card { background: white; width: 88%; max-width: 380px; border-radius: 30px; padding: 30px 20px; text-align: center; animation: pop 0.3s ease; }
+    @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .m-btn { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: none; font-weight: 700; font-size: 14px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .m-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 15px; border: 1px solid #ddd; text-align: center; font-size: 16px; }
+
+    /* HISTORY BLOCKS */
+    .history-tabs { display: flex; background: white; margin: 15px 20px; border-radius: 15px; padding: 5px; }
+    .h-tab { flex: 1; padding: 12px; text-align: center; font-size: 12px; font-weight: 700; color: #888; cursor: pointer; border-radius: 12px; }
+    .h-tab.active { background: #f45a32; color: white; }
+    .history-container { width: 88%; margin: 10px auto; background: white; border-radius: 25px; padding: 10px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); min-height: 100px;}
+    .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f9f9f9; }
+    .hist-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .earn-icon { background: #e8f5e9; color: #2ecc71; }
+    .out-icon { background: #ffebee; color: #e74c3c; }
+
+    .pe_signin_button { display: flex; justify-content: center; margin: 15px 0; }
+    .bottom-nav { position: fixed; bottom: 18px; left: 5%; width: 90%; background: white; display: flex; justify-content: space-around; padding: 15px; border-radius: 40px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); z-index: 100; }
+    .nav-item { text-align: center; color: #bbb; font-size: 10px; font-weight: 600; text-decoration: none; }
+    .nav-item.active { color: #f45a32; }
+    .nav-item i { font-size: 24px; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+
+<div class="nav-header">
+    <div onclick="goTo('Home.html')" class="back-btn"><i class="fas fa-chevron-left"></i></div>
+    <div style="font-weight: 800; font-size: 18px; color: white;">PROFILE</div>
+    <div style="width:42px;"></div>
+</div>
+
+<div class="profile-header">
+    <img id="userImg" src="" class="user-big-avatar">
+    <div class="user-name-text" id="userName">Loading...</div>
+    <div class="user-phone-text" id="userPhone">---</div>
+    <div id="userLevelDisplay"></div>
+</div>
+
+<div class="balance-card">
+    <span style="font-size: 13px; opacity: 0.7;">Redeemable Wallet</span>
+    <div class="coin-display">
+        <img src="https://cdn-icons-png.flaticon.com/512/272/272525.png" style="width:35px;">
+        <span id="walletCoins">0</span>
+    </div>
+    <div class="money-rs-tag">
+        <i class="fas fa-wallet" style="color: #ffd700;"></i>
+        <span>≈ ₹<span id="rsValueDisplay">0.00</span></span>
+    </div>
+    <p id="limitTextDisplay" style="font-size: 11px; opacity: 0.6; margin-top: 10px;">---</p>
+</div>
+
+<div id="choiceModal" class="modal-overlay">
+    <div class="m-card">
+        <h3 style="color:#681212; margin-bottom:20px;">Choice Action</h3>
+        <button class="m-btn" style="background:#f45a32;" onclick="goTo('Home.html')">
+            <i class="fas fa-tasks"></i> By Subscribe Follow Like Watchtime & Web visit
+        </button>
+        <button class="m-btn" style="background:#681212;" onclick="checkKycAndWithdraw()">
+            <i class="fas fa-money-bill-wave"></i> Withdrawal Money
+        </button>
+        <p onclick="closeM('choiceModal')" style="margin-top:15px; color:#999; cursor:pointer; font-size:12px;">Cancel</p>
+    </div>
+</div>
+
+<div id="kycModal" class="modal-overlay">
+    <div class="m-card">
+        <i class="fas fa-user-shield" style="font-size:45px; color:#f45a32; margin-bottom:15px;"></i>
+        <h3>KYC Required</h3>
+        <p style="font-size:12px; color:#777; margin-bottom:20px;">Guest accounts must link a mobile number for KYC. <br><b>Fee: 50 Coins</b></p>
+        <div class="pe_signin_button" data-client-id="15959639056637300233"></div>
+        <p onclick="closeM('kycModal')" style="margin-top:15px; color:#999; cursor:pointer; font-size:12px;">Later</p>
+    </div>
+</div>
+
+<div id="pModal" class="modal-overlay">
+    <div class="m-card">
+        <h3 id="pTitle">Redeem</h3>
+        <input type="number" id="pAmtInput" class="m-input" disabled style="background:#eee;">
+        <input type="number" id="pNumber" class="m-input" placeholder="Wallet Number">
+        <button class="m-btn" style="background:#27ae60;" onclick="sendReq()">Confirm Redeem</button>
+        <p onclick="closeM('pModal')" style="margin-top:15px; color:#999; cursor:pointer; font-size:12px;">Close</p>
+    </div>
+</div>
+
+<div class="section-title">Redeem Rewards</div>
+<div class="withdraw-grid">
+    <div class="method-card" onclick="openChoice()"><img src="https://download.logo.wine/logo/Paytm/Paytm-Logo.wine.png"><p>Paytm</p></div>
+    <div class="method-card" onclick="openChoice()"><img src="https://download.logo.wine/logo/PhonePe/PhonePe-Logo.wine.png"><p>PhonePe</p></div>
+</div>
+
+<div class="section-title">Daily Earning History</div>
+<div class="history-tabs">
+    <div class="h-tab active" id="tabE" onclick="switchH('earn')">Today's Earnings</div>
+    <div class="h-tab" id="tabW" onclick="switchH('withdraw')">Withdrawals</div>
+</div>
+<div class="history-container" id="historyBox"></div>
+
+<div class="bottom-nav">
+    <div onclick="goTo('Home.html')" class="nav-item"><i class="fas fa-home"></i>Home</div>
+    <div onclick="goTo('Leaderboard.html')" class="nav-item"><i class="fas fa-poll-h"></i>Leader</div>
+    <div onclick="goTo('refer frend.html')" class="nav-item"><i class="fas fa-user-friends"></i>Refer</div>
+    <div onclick="goTo('withdrawal mony.html')" class="nav-item active"><i class="fas fa-user-circle"></i>Profile</div>
+</div>
+
+<script src="https://www.phone.email/sign_in_button_v1.js"></script>
+<script>
+var firebaseConfig = { apiKey: "AIzaSyBrr8T6MhvyCR4ocLqkBjZFlkLbQXAEwyk", databaseURL: "https://online-earning-app-607bb-default-rtdb.firebaseio.com" };
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+const params = new URLSearchParams(window.location.search);
+const uid = params.get('uid') || localStorage.getItem("user_mobile");
+
+let currentCoins = 0, lifetime = 0, isGuest = false, lvlData = {}, withdrawCountToday = 0;
+
+function getLvl(e) {
+    let s = Number(e);
+    if (s >= 10000) return { n: "Diamond", c: "#00d2ff", l: 10000, rs: 100, i: "fa-gem", limit: 999 };
+    if (s >= 1000) return { n: "Gold", c: "#ffae00", l: 1000, rs: 10, i: "fa-crown", limit: 10 };
+    if (s >= 100) return { n: "Silver", c: "#95a5a6", l: 100, rs: 1, i: "fa-medal", limit: 3 };
+    return { n: "Bronze", c: "#cd7f32", l: 0, rs: 0, i: "fa-award", limit: 0 };
+}
+
+if(uid) {
+    db.ref("users/"+uid).on("value", snap => {
+        let d = snap.val(); if(!d) return;
+        currentCoins = d.coins || 0; lifetime = d.lifetime_earnings || 0;
+        isGuest = d.isGuest || false;
+        lvlData = getLvl(lifetime);
+        const today = new Date().toLocaleDateString();
+        withdrawCountToday = (d.last_withdraw_date === today) ? (d.withdraw_count || 0) : 0;
+        document.getElementById("walletCoins").innerText = currentCoins.toLocaleString();
+        document.getElementById("rsValueDisplay").innerText = (currentCoins/100).toFixed(2);
+        document.getElementById("userName").innerText = d.name || uid;
+        document.getElementById("userPhone").innerText = isGuest ? "Guest Account" : "+91 "+uid;
+        document.getElementById("userImg").src = "https://api.dicebear.com/7.x/avataaars/svg?seed="+uid;
+        document.getElementById("userLevelDisplay").innerHTML = `<i class="fas ${lvlData.i}" style="color:${lvlData.c}"></i> <span style="color:${lvlData.c}">${lvlData.n}</span>`;
+        document.getElementById("limitTextDisplay").innerText = `Limit: ${lvlData.l} Coins (₹${lvlData.rs}) | Daily Left: ${lvlData.limit - withdrawCountToday}`;
+        document.getElementById("pAmtInput").value = lvlData.l;
+    });
+}
+
+function openChoice() { document.getElementById('choiceModal').style.display = 'flex'; }
+function closeM(id) { document.getElementById(id).style.display = 'none'; }
+
+function checkKycAndWithdraw() {
+    closeM('choiceModal');
+    if(lvlData.n === "Bronze") { alert("❌ Error: Bronze level users withdrawal nahi kar sakte!"); return; }
+    if(isGuest === true) { document.getElementById('kycModal').style.display = 'flex'; return; }
+    if(withdrawCountToday >= lvlData.limit) { alert(`❌ Error: Aapka daily limit khatam ho gaya hai!`); return; }
+    document.getElementById('pModal').style.display = 'flex';
+}
+
+function phoneEmailListener(obj) {
+    fetch(obj.user_json_url).then(r => r.json()).then(data => {
+        let phone = data.user_phone_number.replace("+91","").replace("+","").trim();
+        if(currentCoins < 50) { alert("Min 50 coins required!"); return; }
+        const oldRef = db.ref("users/"+uid);
+        oldRef.once("value").then(snap => {
+            let userData = snap.val();
+            userData.phone = phone; userData.isGuest = false; userData.coins -= 50;
+            db.ref("users/"+phone).set(userData).then(() => {
+                oldRef.remove(); localStorage.setItem("user_mobile", phone);
+                window.location.replace("withdrawal mony.html?uid="+phone);
+            });
+        });
+    });
+}
+
+function sendReq() {
+    let n = document.getElementById("pNumber").value;
+    if(n.length < 10) return alert("Valid number please!");
+    if(currentCoins < lvlData.l) return alert("Low balance!");
+    const today = new Date().toLocaleDateString();
+    let rid = Date.now();
+    db.ref("withdrawals/"+uid+"/"+rid).set({ amount: lvlData.l, status: "Pending", method: "Wallet", phone: n, date: today });
+    db.ref("redeem_requests/"+rid).set({ uid: uid, phone: n, amount: lvlData.l, status: "Pending", method: "Wallet", date: today }).then(() => {
+        db.ref("users/"+uid).update({ coins: currentCoins - lvlData.l, last_withdraw_date: today, withdraw_count: withdrawCountToday + 1 });
+        alert("🎉 Request sent!"); closeM('pModal');
+    });
+}
+
+function switchH(type) {
+    const tE = document.getElementById("tabE"), tW = document.getElementById("tabW");
+    if(type === 'earn') { tE.classList.add("active"); tW.classList.remove("active"); loadData('earnings'); }
+    else { tW.classList.add("active"); tE.classList.remove("active"); loadData('withdrawals'); }
+}
+
+function loadData(path) {
+    const box = document.getElementById("historyBox");
+    const today = new Date().toLocaleDateString();
+    let dbRef = (path === 'earnings') ? db.ref("users/"+uid+"/history/earnings") : db.ref("withdrawals/"+uid);
+    dbRef.once("value", snap => {
+        box.innerHTML = "";
+        if(!snap.exists()) { box.innerHTML = "<p style='text-align:center; padding:20px; color:#aaa; font-size:12px;'>No history found.</p>"; return; }
+        let items = [];
+        snap.forEach(child => {
+            let d = child.val();
+            if(path === 'earnings' && d.date && !d.date.includes(today)) { dbRef.child(child.key).remove(); }
+            else { items.push(d); }
+        });
+        items.reverse().forEach(d => {
+            let isE = (path === 'earnings');
+            let statusColor = d.status === 'Approved' ? '#2ecc71' : d.status === 'Rejected' ? '#e74c3c' : '#f39c12';
+            box.innerHTML += `
+                <div class="history-item">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="hist-icon ${isE?'earn-icon':'out-icon'}"><i class="fas ${isE?'fa-plus':'fa-minus'}"></i></div>
+                        <div>
+                            <p style="font-size:13px; font-weight:700;">${isE?(d.reason||'Reward'):(d.method||'Withdraw')}</p>
+                            <span style="font-size:10px; color:#999;">${d.date || 'Today'}</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:800; color:${isE?'#2ecc71':'#e74c3c'}; font-size:14px;">${isE?'+':'-'}${d.amount||d.coins}</div>
+                        ${!isE ? `<span style="font-size:9px; font-weight:700; color:${statusColor}">${d.status||'Pending'}</span>` : ''}
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+function goTo(p) { window.location.href = p + "?uid=" + uid; }
+document.addEventListener("DOMContentLoaded", () => { if(uid) switchH('earn'); });
+</script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Premium Reward - Home</title>
+
+<script>
+// --- SECURITY GATEKEEPER ---
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const u = p.get('uid') || localStorage.getItem("user_mobile");
+    if (!u || u === "null" || u === "" || u === "undefined" || u === null) {
+        window.location.replace("Login.html");
+    }
+})();
+
+// --- GLOBAL NETWORK SECURITY CHECK ---
+function checkNet() {
+    if (!navigator.onLine) {
+        document.body.style.pointerEvents = "none";
+        document.body.style.opacity = "0.6";
+        alert("❌ No Internet Connection! Please connect to internet to continue.");
+        return false;
+    } else {
+        document.body.style.pointerEvents = "all";
+        document.body.style.opacity = "1";
+        return true;
+    }
+}
+window.addEventListener('offline', checkNet);
+window.addEventListener('online', checkNet);
+setInterval(checkNet, 4000);
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #fdf1e1; color: #333; overflow-y: auto; height: 100vh; }
+    .bg-gradient { background: linear-gradient(180deg, #f45a32 0%, #ff9545 40%, #fdf1e1 100%); height: 500px; width: 100%; position: absolute; top: 0; z-index: -1; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 50px 25px 10px 25px; color: white; }
+    .profile-img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid white; object-fit: cover; background: #ddd; }
+    .notif-btn { background: rgba(255,255,255,0.15); padding: 10px; border-radius: 50%; color: white; }
+    
+    /* Level Tag Styling */
+    #uLevelTag { background: white; padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: 800; margin-top: 5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    .sticky-wallet-container { position: sticky; top: 0; z-index: 200; padding: 10px 0; }
+    .wallet-card { background: #681212; width: 90%; margin: 0 auto; border-radius: 25px; padding: 18px 15px; text-align: center; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
+    .balance-amount { font-size: 30px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 5px 0; }
+    .my-wallet-btn { background: linear-gradient(90deg, #f45a32, #ff9545); border: none; padding: 12px; border-radius: 15px; color: white; font-weight: 700; width: 90%; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px auto 0; font-size: 14px; text-decoration: none; cursor: pointer; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-card { background: linear-gradient(180deg, #681212 0%, #a52a2a 100%); width: 92%; max-width: 380px; border-radius: 35px; padding: 30px 20px; text-align: center; color: white; position: relative; }
+    .close-modal { position: absolute; top: 20px; right: 25px; font-size: 22px; color: white; cursor: pointer; }
+    
+    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 15px 20px; }
+    .action-card { background: white; padding: 20px 5px; border-radius: 22px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); font-size: 10.5px; font-weight: 600; cursor: pointer; }
+    .action-card img { width: 45px; margin-bottom: 8px; }
+
+    .section-title { padding: 25px 25px 15px; font-size: 19px; font-weight: 700; }
+    .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px 140px 20px; }
+    .task-card { background: white; border-radius: 28px; padding: 25px 15px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.03); }
+    .social-logo { width: 55px; height: 55px; margin-bottom: 12px; }
+    .task-btn { background: #ff8146; border: none; color: white; width: 100%; padding: 11px; border-radius: 13px; font-weight: 700; font-size: 13px; cursor: pointer; }
+
+    .progress-box { width: 100%; background: rgba(255,255,255,0.2); height: 12px; border-radius: 10px; margin-top: 20px; overflow: hidden; display: none; }
+    .progress-fill { width: 0%; height: 100%; background: #ffd700; transition: width 7s linear; }
+
+    .bottom-nav { position: fixed; bottom: 15px; left: 5%; width: 90%; background: white; display: flex; justify-content: space-around; padding: 15px; border-radius: 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); z-index: 1000; }
+    .nav-item { text-align: center; color: #bbb; font-size: 10px; font-weight: 600; text-decoration: none; }
+    .nav-item.active { color: #f45a32; }
+    .nav-item i { font-size: 22px; display: block; margin-bottom: 4px; }
+    
+    #statusMsg, #visitStatusMsg, #quizStatus { margin: 15px 0; font-weight: 600; font-size: 14px; min-height: 20px; color: white; }
+    #questionBox { font-size: 32px; font-weight: 800; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; margin-bottom: 20px; letter-spacing: 2px; }
+    .quiz-input { width: 100%; padding: 15px; border-radius: 15px; border: none; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+
+<div class="modal-overlay" id="quizModal" style="align-items: flex-start; padding-top: 8vh;">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeQuiz()"></i>
+        <img src="https://cdn-icons-png.flaticon.com/512/3407/3407024.png" style="width:80px; margin-bottom:15px;">
+        <h3 style="font-size:22px; font-weight:800;">Math Quiz</h3>
+        <p id="quizLimitText" style="font-size:12px; color:#ffd700; margin-bottom:15px;">Daily Limit: 20/20 Left</p>
+        <div id="questionBox">0 + 0 = ?</div>
+        <input type="number" id="quizAnswer" class="quiz-input" placeholder="Jawab likhein">
+        <button class="task-btn" style="background:#2ecc71; padding:15px; font-size:16px;" onclick="checkQuizAnswer()">Submit Answer</button>
+        <div id="quizStatus"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="visitModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeVisitModal()"></i>
+        <img src="https://cdn-icons-png.flaticon.com/512/10026/10026247.png" style="width:80px; margin-bottom:15px;">
+        <h3 style="font-size:22px; font-weight:800;">Visit & Earn</h3>
+        <p id="visitLimitText" style="font-size:12px; color:#ffd700; margin-bottom:15px;">Daily Limit: 50/50 Left</p>
+        <div id="visitStatusMsg">Pehle Website visit karein</div>
+        <button class="task-btn" id="visitStartBtn" style="padding:15px; background:#f45a32;" onclick="startExternalVisit()">Start Visit</button>
+        <button class="task-btn" id="visitConfirmBtn" style="display:none; padding:15px; background:#2ecc71; margin-top:15px;" onclick="verifyVisit()">Confirm Now</button>
+        <div class="progress-box" id="visitPBox"><div class="progress-fill" id="visitPFill"></div></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="taskModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeTaskModal()"></i>
+        <img id="mLogo" src="" style="width:80px; margin-bottom:15px;">
+        <h3 id="mTitle" style="font-size:22px; font-weight:800;">Tasks</h3>
+        <div class="task-modal-grid" style="display: grid; gap: 15px; margin-top: 20px;">
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openFinalTask('Subscribe')">
+                <i class="fas fa-plus-circle" style="font-size:24px; color:#f45a32;"></i>
+                <div><h4 id="mT1">Subscribe</h4><p style="font-size:11px;">Earn 🪙 <span id="val1">0</span></p></div>
+            </div>
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openFinalTask('Like')">
+                <i class="fas fa-heart" style="font-size:24px; color:#f45a32;"></i>
+                <div><h4>Like Content</h4><p style="font-size:11px;">Earn 🪙 <span id="val2">0</span></p></div>
+            </div>
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openFinalTask('Watch')">
+                <i class="fas fa-play-circle" style="font-size:24px; color:#f45a32;"></i>
+                <div><h4>Watch Video</h4><p style="font-size:11px;">Earn 🪙 <span id="val3">0</span></p></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="ytFinalModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeYtFinal()"></i>
+        <img src="" id="finalIcon" style="width:90px; margin-bottom:15px;">
+        <h3 style="font-size:20px; font-weight:800;" id="finalTitle">Action</h3>
+        <div id="statusMsg">Pehle Action poora karein</div>
+        <button class="task-btn" id="ytSubBtn" style="padding:15px; background:#ff0000;" onclick="startYtTask()">Start Now</button>
+        <div id="countdownContainer" style="display:none; font-size:24px; font-weight:800; color:#ffd700; margin-top:15px;">20</div>
+        <button class="task-btn" id="confirmBtn" style="display:none; padding:15px; background:#2ecc71; margin-top:15px;" onclick="verifyTask()">Confirm Now</button>
+        <div class="progress-box" id="pBox"><div class="progress-fill" id="pFill"></div></div>
+    </div>
+</div>
+
+<div class="header">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <img id="uImg" src="" class="profile-img">
+        <div><p id="uName" style="color:white; font-weight:700; font-size: 16px;">Loading...</p><div id="uLevelTag"></div></div>
+    </div>
+    <div class="notif-btn"><i class="fas fa-bell"></i></div>
+</div>
+
+<div class="sticky-wallet-container">
+    <div class="wallet-card">
+        <span style="font-size:12px; opacity:0.7;">Current Balance</span>
+        <div class="balance-amount">🪙 <span id="coinsDisplay">0</span></div>
+        <div class="my-wallet-btn" onclick="goTo('withdrawal mony.html')">My Wallet</div>
+    </div>
+</div>
+
+<div class="action-grid">
+    <div class="action-card" onclick="claimDailyBonus()">
+        <img src="https://cdn-icons-png.flaticon.com/512/2272/2272825.png">
+        <p id="dailyTxt">Daily Bonus</p>
+    </div>
+    <div class="action-card" id="quizCard" onclick="openQuiz()"><img src="https://cdn-icons-png.flaticon.com/512/3407/3407024.png"><p id="quizTxt">Play Quiz</p></div>
+    <div class="action-card" id="visitCard" onclick="openVisitModal()"><img src="https://cdn-icons-png.flaticon.com/512/10026/10026247.png"><p id="visitTxt">Visit & Earn</p></div>
+</div>
+
+<div class="section-title">More Tasks</div>
+
+<div class="grid-container">
+    <div class="task-card"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" class="social-logo"><p style="font-weight:700;">YouTube</p><button class="task-btn" onclick="openTaskModal('YouTube', 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png')">Subscribe</button></div>
+    <div class="task-card"><img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" class="social-logo"><p style="font-weight:700;">Instagram</p><button class="task-btn" onclick="openTaskModal('Instagram', 'https://cdn-icons-png.flaticon.com/512/174/174855.png')">Follow</button></div>
+    <div class="task-card"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" class="social-logo"><p style="font-weight:700;">Telegram</p><button class="task-btn" onclick="openTaskModal('Telegram', 'https://cdn-icons-png.flaticon.com/512/2111/2111646.png')">Join Now</button></div>
+    <div class="task-card"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" class="social-logo"><p style="font-weight:700;">Facebook</p><button class="task-btn" onclick="openTaskModal('Facebook', 'https://cdn-icons-png.flaticon.com/512/733/733547.png')">Follow Page</button></div>
+</div>
+
+<div class="bottom-nav">
+    <a href="Home.html" class="nav-item active" id="navHome"><i class="fas fa-home"></i>Home</a>
+    <a href="Leaderboard.html" class="nav-item" id="navLeader"><i class="fas fa-poll-h"></i>Leader</a>
+    <a href="refer frend.html" class="nav-item" id="navRefer"><i class="fas fa-user-friends"></i>Refer</a>
+    <a href="withdrawal mony.html" class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i>Profile</a>
+</div>
+
+<script>
+const firebaseConfig = { apiKey: "AIzaSyBrr8T6MhvyCR4ocLqkBjZFlkLbQXAEwyk", databaseURL: "https://online-earning-app-607bb-default-rtdb.firebaseio.com" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const params = new URLSearchParams(window.location.search);
+let uid = params.get('uid') || localStorage.getItem("user_mobile");
+localStorage.setItem("user_mobile", uid);
+
+function updateLinks() { ["navHome", "navLeader", "navRefer", "navProfile"].forEach(id => { let el = document.getElementById(id); if(el) el.href = el.href.split('?')[0] + "?uid=" + uid; }); }
+updateLinks();
+
+let currentCoins = 0, lifetimeEarnings = 0, userCompletedTasks = [], visitedToday = 0, solvedToday = 0;
+let startTime = 0, running = false, visitStartTime = 0, visitRunning = false, currentVisitId = "", currentVisitLink = "";
+let currentPlat = "", currentType = "", currentTaskLink = "", currentTaskVal = 0, currentTaskId = "";
+let countdownInterval, countdownActive = false, returnTime = 0; 
+
+// --- UPDATED LEVEL LOGIC ---
+function getLevel(e) {
+    let exp = Number(e);
+    if (exp >= 10000) return { n: "Diamond", c: "#00d2ff", i: "fa-gem" };
+    if (exp >= 1000) return { n: "Gold", c: "#ffae00", i: "fa-crown" };
+    if (exp >= 100) return { n: "Silver", c: "#95a5a6", i: "fa-medal" };
+    return { n: "Bronze", c: "#cd7f32", i: "fa-award" };
+}
+
+// --- REAL-TIME LISTENER (UPDATES UI & LEVEL TAG INSTANTLY) ---
+db.ref("users/"+uid).on("value", (snap) => {
+    let d = snap.val(); if(!d) return;
+    currentCoins = d.coins || 0; 
+    lifetimeEarnings = Number(d.lifetime_earnings || 0); 
+    userCompletedTasks = d.completed_tasks || [];
+    
+    document.getElementById("coinsDisplay").innerText = currentCoins.toLocaleString();
+    document.getElementById("uName").innerText = "Hi, " + (d.name || uid);
+    
+    // Level Refresh Logic
+    let l = getLevel(lifetimeEarnings);
+    let tag = document.getElementById("uLevelTag");
+    tag.innerHTML = `<i class="fas ${l.i}"></i> ${l.n}`;
+    tag.style.color = l.c;
+    document.getElementById("uImg").src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${uid}`;
+    checkStatus();
+});
+
+function checkStatus() {
+    const today = new Date().toLocaleDateString();
+    db.ref("users/"+uid+"/task_stats").once("value", (snap) => {
+        let s = snap.val() || {};
+        visitedToday = (s.visit_date === today) ? s.visit_count : 0;
+        solvedToday = (s.quiz_date === today) ? s.quiz_count : 0;
+        if(s.last_check === today) { document.getElementById('dailyTxt').innerHTML = "✅ Bonus Done"; }
+        if(visitedToday >= 50) { document.getElementById('visitTxt').innerHTML = "✅ Today Done"; document.getElementById('visitCard').onclick = null; }
+        if(solvedToday >= 20) { document.getElementById('quizTxt').innerHTML = "✅ Today Done"; document.getElementById('quizCard').onclick = null; }
+        updateVisitLimitUI();
+    });
+}
+
+// --- REWARD LOGIC WITH INSTANT LEVEL UP ---
+function saveReward(type, win) {
+    if(!checkNet()) return;
+    const today = new Date().toLocaleDateString();
+    db.ref("users/"+uid).once("value", (snap) => {
+        let d = snap.val() || {};
+        let newCoins = currentCoins + win;
+        let newLifetime = lifetimeEarnings + win;
+
+        db.ref("users/"+uid).update({ 
+            coins: newCoins, 
+            lifetime_earnings: newLifetime 
+        });
+
+        if(type === 'quiz') {
+            db.ref("users/"+uid+"/task_stats").update({ 
+                quiz_count: solvedToday + 1, 
+                quiz_date: today 
+            });
+        }
+
+        if(win > 0) {
+            db.ref("users/"+uid+"/history/earnings").push({ 
+                amount: win, 
+                reason: type, 
+                date: today 
+            });
+        }
+    });
+}
+
+function claimDailyBonus() {
+    if(!checkNet()) return;
+    const today = new Date().toLocaleDateString();
+    db.ref("users/"+uid+"/task_stats/last_check").once("value", (snap) => {
+        if(snap.val() === today) return;
+        db.ref("users/"+uid).update({ coins: currentCoins + 10, lifetime_earnings: lifetimeEarnings + 10 });
+        db.ref("users/"+uid+"/task_stats").update({ last_check: today });
+        db.ref("users/"+uid+"/history/earnings").push({ amount: 10, reason: "Daily Bonus", date: today });
+        alert("🎉 10 Coins claimed!");
+    });
+}
+
+function openQuiz() { if(!checkNet()) return; generateQ(); document.getElementById('quizModal').style.display = "flex"; }
+function generateQ() {
+    const n1 = Math.floor(Math.random()*20)+1, n2 = Math.floor(Math.random()*10)+1;
+    quizAnswer = n1 + n2; document.getElementById('questionBox').innerText = `${n1} + ${n2} = ?`;
+    document.getElementById('quizAnswer').value = ""; document.getElementById('quizStatus').innerText = "";
+    document.getElementById('quizLimitText').innerText = `Daily Limit: ${20 - solvedToday}/20 Left`;
+}
+function checkQuizAnswer() {
+    if(!checkNet()) return;
+    const ans = parseInt(document.getElementById('quizAnswer').value);
+    if(isNaN(ans)) return;
+    let win = (ans === quizAnswer) ? (Math.floor(Math.random() * 4) + 1) : 0;
+    saveReward('quiz', win);
+    if(ans === quizAnswer) {
+        document.getElementById('quizStatus').innerText = `✅ Success! +🪙 ${win}`;
+        if(solvedToday >= 19) setTimeout(closeQuiz, 1500); else setTimeout(generateQ, 1500);
+    } else {
+        document.getElementById('quizStatus').innerText = "❌ Wrong Answer!";
+    }
+}
+
+function openVisitModal() { if(!checkNet()) return; if (visitedToday >= 50) return alert("Daily Limit Over!"); loadNextVisitLink(); }
+function loadNextVisitLink() {
+    if (visitedToday >= 50) { document.getElementById('visitStartBtn').style.display = "none"; document.getElementById('visitStatusMsg').innerText = "✅ Tasks Done!"; return; }
+    db.ref("visit_links").once("value", (snap) => {
+        let links = snap.val(), found = false;
+        if(links) { for(let id in links) { if(!userCompletedTasks.includes(id)) { currentVisitId = id; currentVisitLink = links[id].url || links[id].link; found = true; break; } } }
+        if(!found) { document.getElementById('visitStatusMsg').innerText = "No more links!"; document.getElementById('visitStartBtn').style.display = "none"; return; }
+        document.getElementById('visitStartBtn').innerText = "Start Visit";
+        document.getElementById('visitStartBtn').style.display = "block";
+        document.getElementById('visitConfirmBtn').style.display = "none";
+        document.getElementById('visitPBox').style.display = "none";
+        document.getElementById('visitPFill').style.width = "0%";
+        document.getElementById('visitStatusMsg').innerText = "Pehle Website visit karein";
+        document.getElementById('visitModal').style.display = "flex";
+        visitRunning = false;
+    });
+}
+function startExternalVisit() { if(!checkNet()) return; visitStartTime = Date.now(); visitRunning = true; window.open(currentVisitLink, '_blank'); document.getElementById('visitStartBtn').style.display = "none"; }
+
+function verifyVisit() {
+    if(!checkNet()) return;
+    let diff = Math.floor((returnTime - visitStartTime) / 1000);
+    if (diff < 10) { alert("❌ Error: Min 10s wait required!"); closeVisitModal(); return; }
+    if (diff > 20) { alert("❌ Error: Confirm window expired (Max 20s)!"); closeVisitModal(); return; }
+    
+    document.getElementById('visitConfirmBtn').style.display = "none"; document.getElementById('visitPBox').style.display = "block";
+    document.getElementById('visitStatusMsg').innerText = "Verifying...";
+    setTimeout(() => { document.getElementById('visitPFill').style.width = "100%"; }, 100);
+    setTimeout(() => {
+        if(!checkNet()) return;
+        const today = new Date().toLocaleDateString();
+        let win = Math.floor(Math.random() * 5) + 1; userCompletedTasks.push(currentVisitId);
+        db.ref("users/"+uid).update({ coins: currentCoins + win, lifetime_earnings: lifetimeEarnings + win, completed_tasks: userCompletedTasks }).then(() => {
+            db.ref("users/"+uid+"/task_stats").update({ visit_count: visitedToday + 1, visit_date: today });
+            db.ref("users/"+uid+"/history/earnings").push({ amount: win, reason: "Visit Reward", date: today });
+            document.getElementById('visitStatusMsg').innerText = `✅ Success! +🪙 ${win} Added!`;
+            setTimeout(loadNextVisitLink, 2000);
+        });
+    }, 15000);
+}
+
+function openTaskModal(plat, logo) {
+    if(!checkNet()) return;
+    currentPlat = plat; document.getElementById('mLogo').src = logo;
+    loadSocialTask('Subscribe', 'val1'); loadSocialTask('Like', 'val2'); loadSocialTask('Watch', 'val3');
+    document.getElementById('taskModal').style.display = "flex";
+}
+function loadSocialTask(type, valId) {
+    db.ref(`tasks/${currentPlat}/${type}`).once("value", (snap) => {
+        let tasks = snap.val(); if(!tasks) return;
+        for(let id in tasks) { if(!userCompletedTasks.includes(id)) { document.getElementById(valId).innerText = tasks[id].value; break; } }
+    });
+}
+function openFinalTask(type) {
+    if(!checkNet()) return;
+    currentType = type;
+    db.ref(`tasks/${currentPlat}/${type}`).once("value", (snap) => {
+        let tasks = snap.val(), found = false;
+        for(let id in tasks) { if(!userCompletedTasks.includes(id)) { currentTaskId = id; currentTaskLink = tasks[id].link; currentTaskVal = tasks[id].value; found = true; break; } }
+        if(!found) return alert("All tasks completed!");
+        
+        document.getElementById('finalTitle').innerText = (type === 'Watch' ? "Watch Video" : type);
+        document.getElementById('finalIcon').src = document.getElementById('mLogo').src;
+        document.getElementById('ytSubBtn').style.display = "block"; 
+        document.getElementById('confirmBtn').style.display = "none";
+        document.getElementById('countdownContainer').style.display = "none";
+        document.getElementById('pBox').style.display = "none"; 
+        document.getElementById('pFill').style.width = "0%";
+        document.getElementById('statusMsg').innerText = (type === 'Watch' ? "Pehle Video poora dekhein" : "Pehle Action poora karein");
+        
+        document.getElementById('taskModal').style.display = "none"; document.getElementById('ytFinalModal').style.display = "flex";
+        clearInterval(countdownInterval);
+    });
+}
+function startYtTask() { if(!checkNet()) return; startTime = Date.now(); running = true; window.open(currentTaskLink, '_blank'); document.getElementById('ytSubBtn').style.display = "none"; }
+
+function startCountdown(seconds) {
+    if (countdownActive) return;
+    countdownActive = true;
+    document.getElementById('countdownContainer').style.display = "block";
+    document.getElementById('confirmBtn').style.display = "none";
+    let timeLeft = Math.ceil(seconds);
+    document.getElementById('countdownContainer').innerText = timeLeft;
+
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('countdownContainer').innerText = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            document.getElementById('countdownContainer').style.display = "none";
+            document.getElementById('confirmBtn').style.display = "block";
+            countdownActive = false;
+        }
+    }, 1000);
+}
+
+function verifyTask() {
+    if(!checkNet()) return;
+    let diff = Math.floor((returnTime - startTime) / 1000);
+    
+    if (currentType === 'Watch') { if (diff < 20) { alert("❌ Error: Video not watched enough!"); closeYtFinal(); return; } } 
+    else {
+        if (diff < 8) { alert(`❌ Error: Action too fast!`); closeYtFinal(); return; }
+        if (diff > 15) { alert("❌ Error: Confirm window expired!"); closeYtFinal(); return; }
+    }
+    
+    document.getElementById('confirmBtn').style.display = "none"; 
+    document.getElementById('pBox').style.display = "block";
+    document.getElementById('statusMsg').innerText = "Verifying...";
+    setTimeout(() => { document.getElementById('pFill').style.width = "100%"; }, 100);
+    
+    setTimeout(() => {
+        if(!checkNet()) return;
+        const today = new Date().toLocaleDateString();
+        userCompletedTasks.push(currentTaskId);
+        db.ref("users/"+uid).update({ 
+            coins: currentCoins + currentTaskVal, 
+            lifetime_earnings: lifetimeEarnings + currentTaskVal, 
+            completed_tasks: userCompletedTasks 
+        }).then(() => {
+            db.ref("users/"+uid+"/history/earnings").push({ 
+                amount: currentTaskVal, 
+                reason: currentPlat+" "+currentType, 
+                date: today 
+            });
+            document.getElementById('statusMsg').innerText = `✅ Success! +🪙 ${currentTaskVal} Added!`;
+            setTimeout(loadNextTask, 2000);
+        });
+    }, 10000);
+}
+
+function loadNextTask() {
+    db.ref(`tasks/${currentPlat}/${currentType}`).once("value", (snap) => {
+        let tasks = snap.val(), next = false;
+        if(tasks){ for(let id in tasks){ if(!userCompletedTasks.includes(id)){ currentTaskId = id; currentTaskLink = tasks[id].link; currentTaskVal = tasks[id].value; next = true; break; } } }
+        if(next) { 
+            document.getElementById('ytSubBtn').style.display = "block"; 
+            document.getElementById('pBox').style.display = "none"; 
+            document.getElementById('confirmBtn').style.display = "none";
+            document.getElementById('countdownContainer').style.display = "none";
+            running = false; 
+            document.getElementById('statusMsg').innerText = (currentType === 'Watch' ? "Pehle Video poora dekhein" : "Pehle Action poora karein");
+        } else { closeYtFinal(); }
+    });
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'visible') {
+        returnTime = Date.now(); 
+        let elapsed = Math.floor((returnTime - startTime) / 1000);
+
+        if (running) {
+            if (currentType === 'Watch') {
+                if (elapsed < 20) startCountdown(20 - elapsed);
+                else document.getElementById('confirmBtn').style.display = "block";
+            } else {
+                document.getElementById('confirmBtn').style.display = "block";
+            }
+        }
+        if (visitRunning) document.getElementById('visitConfirmBtn').style.display = "block";
+    }
+});
+
+function updateVisitLimitUI() { if(document.getElementById('visitLimitText')) document.getElementById('visitLimitText').innerText = `Limit: ${50 - visitedToday}/50 Left`; }
+function closeQuiz() { document.getElementById('quizModal').style.display = "none"; }
+function closeTaskModal() { document.getElementById('taskModal').style.display = "none"; }
+function closeYtFinal() { document.getElementById('ytFinalModal').style.display = "none"; running = false; clearInterval(countdownInterval); countdownActive = false; }
+function closeVisitModal() { document.getElementById('visitModal').style.display = "none"; visitRunning = false; }
+function goTo(p) { window.location.href = p + "?uid=" + uid; }
+</script>
+</body>
+</html>

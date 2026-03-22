@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Refer & Earn - Premium Rewards</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    
+    body { 
+        background: #fdf1e1; 
+        color: #333; 
+        min-height: 100vh; 
+        padding-bottom: 120px; 
+        position: relative;
+    }
+
+    .bg-gradient {
+        background: linear-gradient(180deg, #f45a32 0%, #ff9545 40%, #fdf1e1 100%);
+        height: 550px; 
+        width: 100%;
+        position: absolute;
+        top: 0;
+        z-index: -1;
+    }
+
+    .nav-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 50px 25px 20px; 
+        color: white; 
+    }
+    .back-btn { 
+        background: rgba(255,255,255,0.2); 
+        width: 42px; height: 42px; 
+        border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        color: white; text-decoration: none; cursor: pointer;
+    }
+
+    .refer-content { 
+        text-align: center; 
+        margin-top: 10px;
+    }
+    
+    .refer-img { 
+        width: 160px; 
+        margin-bottom: 20px; 
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15)); 
+    }
+    
+    .invite-title { color: white; margin-bottom: 30px; padding: 0 20px; }
+    .invite-title h2 { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; }
+    .invite-title p { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+
+    .code-card {
+        background: white; 
+        width: 88%; 
+        margin: 0 auto; 
+        border-radius: 30px;
+        padding: 30px 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+    }
+    .label { font-size: 12px; color: #aaa; margin-bottom: 15px; display: block; font-weight: 700; letter-spacing: 1px; }
+    
+    .refer-code-box {
+        background: #fff8f0; 
+        border: 2px dashed #ff9545; 
+        padding: 18px;
+        border-radius: 20px; 
+        font-size: 22px; 
+        font-weight: 800; 
+        color: #681212;
+        letter-spacing: 3px; 
+        margin-bottom: 25px; 
+        display: block;
+        word-break: break-all;
+    }
+
+    .btn-row { display: flex; gap: 12px; }
+    .action-btn { 
+        flex: 1; 
+        padding: 16px; 
+        border-radius: 18px; 
+        border: none; 
+        font-weight: 700; 
+        font-size: 15px; 
+        cursor: pointer; 
+        color: white;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .copy-btn { background: #681212; box-shadow: 0 5px 15px rgba(104, 18, 18, 0.2); }
+    .whatsapp-btn { background: #25D366; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.2); }
+
+    .steps-card { 
+        background: white; 
+        margin: 25px auto; 
+        width: 88%; 
+        border-radius: 30px; 
+        padding: 25px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03); 
+    }
+    .step-item { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
+    .step-icon { 
+        width: 35px; height: 35px; 
+        background: #fdf1e1; 
+        border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        font-weight: 800; color: #f45a32; flex-shrink: 0; 
+    }
+    .step-desc { font-size: 13.5px; font-weight: 600; color: #444; }
+
+    .bottom-nav {
+        position: fixed; bottom: 18px; left: 5%; width: 90%;
+        background: white; display: flex; justify-content: space-around;
+        padding: 15px; border-radius: 35px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); z-index: 100;
+    }
+    .nav-item { text-align: center; color: #b0b0b0; font-size: 10.5px; font-weight: 600; text-decoration: none; }
+    .nav-item.active { color: #f45a32; }
+    .nav-item i { font-size: 24px; display: block; margin-bottom: 5px; }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+
+<div class="nav-header">
+    <div onclick="goTo('Home.html')" class="back-btn"><i class="fas fa-chevron-left"></i></div>
+    <div style="font-weight: 800; font-size: 18px; color: white; letter-spacing: 1px;">REFER & EARN</div>
+    <div style="width:42px;"></div>
+</div>
+
+<div class="refer-content">
+    <img src="https://cdn-icons-png.flaticon.com/512/921/921347.png" class="refer-img">
+    
+    <div class="invite-title">
+        <h2>Invite & Earn</h2>
+        <p>Apne doston ko invite karein aur payein <br><b>🪙 100 Coins</b> har referral par!</p>
+    </div>
+
+    <div class="code-card">
+        <span class="label">YOUR DYNAMIC REFERRAL LINK</span>
+        <span class="refer-code-box" id="refDisplay">Loading link...</span>
+        
+        <div class="btn-row">
+            <button class="action-btn copy-btn" onclick="copyRef()"><i class="fas fa-copy"></i> Copy</button>
+            <button class="action-btn whatsapp-btn" onclick="shareWA()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+        </div>
+    </div>
+</div>
+    
+    
+    <div style="width: 100%; display: flex; justify-content: center; align-items: center; margin: 15px 0;">
+    <div style="width: 320px; height: 50px; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; justify-content: center; align-items: center;">
+        
+        <script type="text/javascript">
+            atOptions = {
+                'key' : 'ca2c5c8c9b66a50606b71fc304bdc26b',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/ca2c5c8c9b66a50606b71fc304bdc26b/invoke.js"></script>
+        
+    </div>
+</div>
+
+    
+    
+
+<div class="steps-card">
+    <p style="font-weight: 800; margin-bottom: 20px; font-size: 17px; color: #222;">How it works?</p>
+    <div class="step-item">
+        <div class="step-icon">1</div>
+        <p class="step-desc">Apna unique Referral Link doston ko share karein.</p>
+    </div>
+    <div class="step-item">
+        <div class="step-icon">2</div>
+        <p class="step-desc">Aapka dost link par click karke signup karega.</p>
+    </div>
+    <div class="step-item">
+        <div class="step-icon">3</div>
+        <p class="step-desc">Signup hote hi aapko 100 coins aur dost ko 50 coins milenge!</p>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <div onclick="goTo('Home.html')" class="nav-item"><i class="fas fa-home"></i>Home</div>
+    <div onclick="goTo('Leaderboard.html')" class="nav-item"><i class="fas fa-poll-h"></i>Leader</div>
+    <div onclick="goTo('refer frend.html')" class="nav-item active"><i class="fas fa-user-friends"></i>Refer</div>
+    <div onclick="goTo('withdrawal mony.html')" class="nav-item"><i class="fas fa-user-circle"></i>Profile</div>
+</div>
+
+<script>
+  // Security Gatekeeper
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const u = p.get('uid') || localStorage.getItem("user_mobile");
+    if (!u || u === "null" || u === "" || u === "undefined") {
+        window.location.replace("Login.html");
+    }
+})();
+  
+    
+    // UID Fetching
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid') || localStorage.getItem("user_mobile");
+    
+    // Dynamic Link Configuration
+    // Yahan apni website ka base URL daalein
+    const baseUrl = "https://rewardearningapp.free.nf/Login.html"; 
+    const finalLink = baseUrl + "?ref=" + uid;
+
+    if(uid) {
+        document.getElementById('refDisplay').innerText = finalLink;
+    } else {
+        document.getElementById('refDisplay').innerText = "Please Login First";
+    }
+
+    function goTo(page) {
+        window.location.href = encodeURI(page) + (uid ? "?uid=" + uid : "");
+    }
+
+    function copyRef() {
+        if(!uid) return alert("Pehle login karein!");
+        navigator.clipboard.writeText(finalLink);
+        alert("Referral Link copy ho gaya!");
+    }
+
+    function shareWA() {
+        if(!uid) return alert("Pehle login karein!");
+        const msg = "💸 Hey! Is naye app se online earning shuru karo. Mere link se signup karo aur 50 coins bonus pao: " + finalLink;
+        window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg));
+    }
+</script>
+
+</body>
+</html>
