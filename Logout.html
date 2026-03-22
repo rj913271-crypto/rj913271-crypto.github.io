@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clearing Data - Premium Reward</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fdf1e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .loader-card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f45a32;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="loader-card">
+    <div class="spinner"></div>
+    <h2 style="color: #681212;">Logging Out...</h2>
+    <p style="color: #666; font-size: 14px;">Clearing local storage data.</p>
+</div>
+
+<script>
+    // Ye function sirf hamari website ka data clear karega
+    function clearLocalData() {
+        try {
+            // 1. user_mobile key ko remove karna
+            localStorage.removeItem("user_mobile");
+            
+            // 2. Pura localStorage clear karna (Safety ke liye)
+            localStorage.clear();
+            
+            console.log("Local Storage Cleared successfully.");
+            
+            // 3. User ko Login page par bhejna
+            setTimeout(() => {
+                window.location.replace("Login.html");
+            }, 1500); // 1.5 second ka delay taaki user ko lage ki process ho raha hai
+            
+        } catch (error) {
+            alert("Error clearing data: " + error);
+            window.location.replace("Login.html");
+        }
+    }
+
+    // Page load hote hi clear process shuru karein
+    window.onload = clearLocalData;
+</script>
+
+</body>
+</html>
