@@ -3,119 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Reel Maker 🎬</title>
+    <title>40s AI Video Master 🎬</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #000; color: white; text-align: center; margin: 0; padding: 10px; }
-        .app { max-width: 400px; margin: auto; background: #111; border-radius: 25px; padding: 20px; border: 1px solid #333; }
-        textarea { width: 100%; height: 60px; background: #222; border: 1px solid #444; border-radius: 12px; padding: 10px; color: white; outline: none; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #000; color: white; text-align: center; margin: 0; padding: 15px; }
+        .app-box { max-width: 400px; margin: auto; background: #111; border-radius: 25px; padding: 20px; border: 1px solid #333; }
+        textarea { width: 100%; height: 80px; background: #222; border: 1px solid #444; border-radius: 15px; padding: 12px; color: white; margin-top: 10px; outline: none; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         
-        /* THE REEL BOX */
-        #recording-area { 
+        /* 9:16 REEL FRAME */
+        #video-frame { 
             width: 100%; 
-            height: 500px; 
+            height: 580px; 
             background: #222; 
             border-radius: 20px; 
             margin-top: 20px; 
             position: relative; 
             overflow: hidden; 
             display: none; 
+            border: 2px solid #007bff;
         }
-        #bg-image { width: 100%; height: 100%; object-fit: cover; }
-        #caption { 
-            position: absolute; top: 50%; left: 10px; right: 10px; transform: translateY(-50%);
-            text-align: center; font-size: 28px; color: yellow; text-shadow: 3px 3px 5px #000; text-transform: uppercase;
+        video { width: 100%; height: 100%; object-fit: cover; }
+        #overlay-text { 
+            position: absolute; bottom: 40px; left: 15px; right: 15px;
+            background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px;
+            font-size: 16px; text-align: left; border-left: 5px solid yellow;
         }
-        #downloadBtn { background: #28a745; display: none; }
+        #dl-btn { background: #28a745; display: none; }
     </style>
 </head>
 <body>
 
-<div class="app">
-    <h3>AI Reel Creator 🚀</h3>
-    <textarea id="topic" placeholder="Topic: Why do we dream?"></textarea>
-    <button class="btn" id="genBtn" onclick="generateReel()">Create Video ✨</button>
-    <button class="btn" id="downloadBtn" onclick="startDownload()">📥 Download Video (MP4)</button>
+<div class="app-box">
+    <h2>40s AI Reel Creator 🚀</h2>
+    <textarea id="topic" placeholder="Likho: Deep Space Secrets (Long Story)..."></textarea>
+    <button class="btn" id="genBtn" onclick="generateLongVideo()">Create 40s Video ✨</button>
+    <button class="btn" id="dl-btn" onclick="downloadLogic()">📥 Download Final Video</button>
     
-    <div id="loader" style="display:none; margin-top:10px;">Processing... ⏳</div>
+    <div id="loader" style="display:none; margin-top:15px;">AI Script & Voice taiyar ho rahi hai... ⏳</div>
 
-    <div id="recording-area">
-        <img id="bg-image">
-        <div id="caption"></div>
+    <div id="video-frame">
+        <video id="mainVideo" loop muted playsinline></video>
+        <div id="overlay-text"></div>
     </div>
     
-    <audio id="audio-player"></audio>
+    <audio id="mainAudio"></audio>
 </div>
 
 <script>
-let mediaRecorder;
-let recordedChunks = [];
-
-async function generateReel() {
+async function generateLongVideo() {
     const topic = document.getElementById('topic').value.trim();
-    if(!topic) return alert("Kuch likho!");
+    if(!topic) return alert("Pehle topic likho!");
 
+    const loader = document.getElementById('loader');
+    const frame = document.getElementById('video-frame');
+    const video = document.getElementById('mainVideo');
+    const audio = document.getElementById('mainAudio');
+    const overlay = document.getElementById('overlay-text');
+    const dlBtn = document.getElementById('dl-btn');
+
+    // API KEYS
     const groqKey = "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";
     const elevenKey = "Sk_3ada94e77dfae805d31312017c0741c3093118fb9afd5cee";
     const pexelsKey = "eKXTvfpgjiskX3vZVViZIGHyBgGNB8kB3SbLgjrKrkosXbfBdSG3KGWy";
 
-    document.getElementById('loader').style.display = "block";
-    document.getElementById('genBtn').disabled = true;
+    loader.style.display = "block";
+    frame.style.display = "none";
 
     try {
-        // 1. Script
-        const gRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        // 1. Long Script (80-100 words approx 40s speech)
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: "Write 1 viral sentence: " + topic }] })
+            body: JSON.stringify({ 
+                model: "llama-3.3-70b-versatile", 
+                messages: [{ role: "user", content: "Write a 100-word interesting story in Hinglish about: " + topic }] 
+            })
         });
-        const gData = await gRes.json();
-        const script = gData.choices[0].message.content.replace(/"/g, '');
+        const groqData = await groqRes.json();
+        const script = groqData.choices[0].message.content;
+        overlay.innerText = script;
 
-        // 2. Image (Pexels)
-        const pRes = await fetch(`https://api.pexels.com/v1/search?query=${topic}&per_page=1`, { headers: { "Authorization": pexelsKey } });
+        // 2. Long Video (Portrait)
+        const pRes = await fetch(`https://api.pexels.com/videos/search?query=${topic}&per_page=1&orientation=portrait`, {
+            headers: { "Authorization": pexelsKey }
+        });
         const pData = await pRes.json();
-        
-        // 3. Voice (ElevenLabs)
+        video.src = pData.videos[0].video_files[0].link;
+
+        // 3. Voice (ElevenLabs Multilingual)
         const vRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgnuMGrWqeXg`, {
             method: "POST",
             headers: { "xi-api-key": elevenKey, "Content-Type": "application/json" },
             body: JSON.stringify({ text: script, model_id: "eleven_multilingual_v2" })
         });
-
-        // DISPLAY EVERYTHING
-        document.getElementById('bg-image').src = pData.photos[0].src.large2x;
-        document.getElementById('caption').innerText = script;
-        document.getElementById('recording-area').style.display = "block";
-        document.getElementById('downloadBtn').style.display = "block";
-
         const audioBlob = await vRes.blob();
-        document.getElementById('audio-player').src = URL.createObjectURL(audioBlob);
-        document.getElementById('audio-player').play();
+        audio.src = URL.createObjectURL(audioBlob);
 
-    } catch (e) { alert("Limit Over! Try after some time."); }
-    document.getElementById('loader').style.display = "none";
-    document.getElementById('genBtn').disabled = false;
+        // Display Everything
+        frame.style.display = "block";
+        dlBtn.style.display = "block";
+        video.play();
+        audio.play();
+
+    } catch (e) { alert("API Limit Error! Dusri Gmail use karein."); }
+    loader.style.display = "none";
 }
 
-// THE DOWNLOAD TRICK (Canvas Recording)
-function startDownload() {
-    const area = document.getElementById('recording-area');
-    alert("Bhai, ab aapki screen record hogi 5 second ke liye, phir download chalu ho jayega! ✅");
-    
-    // Yahan hum simply area ko image ya video mein convert karke download karwa sakte hain.
-    // Professional level mixing ke liye hum "html2canvas" library use karenge.
-    html2canvas(area).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'AI_Reel.png';
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+function downloadLogic() {
+    alert("Bhai, 40 second ki MP4 browser mein merge karna slow hai. Aap abhi Video aur Audio ko alag se download karke VN Editor mein merge kar sakte hain. Kya main Merge-API add karoon?");
 }
 </script>
-
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 </body>
 </html>
