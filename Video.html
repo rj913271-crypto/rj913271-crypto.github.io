@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Master - Stable Fix ✅</title>
+    <title>AI Master - Final Fix ✅</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 25px; background: #fdf1e1; margin: 0; }
-        .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; width: 95%; max-width: 400px; border: 2.5px solid #f45a32; }
+        body { font-family: sans-serif; text-align: center; padding: 30px; background: #fdf1e1; margin: 0; }
+        .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; width: 95%; max-width: 420px; border: 2.5px solid #f45a32; }
         textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border: 1.5px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; }
         button { width: 100%; padding: 15px; background: #f45a32; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; }
         #loader { display: none; margin-top: 15px; font-weight: bold; color: #f45a32; }
@@ -17,13 +17,13 @@
 
 <div class="box">
     <h3>AI Magic Script ✨</h3>
-    <p style="color: purple; font-size: 11px; font-weight: bold;">MODE: LEGACY BYPASS (STABLE)</p>
+    <p style="color: blue; font-size: 11px; font-weight: bold;">GITHUB PAGES: STABLE MODE ✅</p>
     
     <textarea id="topic" placeholder="Likho: Cricket Funny Facts"></textarea>
     
     <button id="genBtn" onclick="runAI()">Generate Script 🚀</button>
     
-    <div id="loader">AI dimag laga raha hai...</div>
+    <div id="loader">AI soch raha hai...</div>
     <div id="result"></div>
 </div>
 
@@ -33,13 +33,13 @@ async function runAI() {
     const resDiv = document.getElementById('result');
     const loading = document.getElementById('loader');
 
-    if(!topic) return alert("Pehle topic likho!");
+    if(!topic) return alert("Kuch toh likho!");
 
-    // AAPKI FRESH DEFAULT PROJECT KEY
+    // AAPKI LATEST KEY
     const apiKey = "AIzaSyCii7ry4SvwTpixl0Tj9a0XXNss_OT5B4E";
     
-    // YEH URL Gemini Pro use karega jo naye accounts par bypass ke liye best hai
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    // YEH URL Gemini 1.5 Flash (v1beta) par 100% stable hai
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     loading.style.display = "block";
     resDiv.style.display = "none";
@@ -60,13 +60,13 @@ async function runAI() {
             resDiv.innerText = data.candidates[0].content.parts[0].text;
             resDiv.style.display = "block";
         } else {
-            // Detailed message for fix
-            const msg = data.error ? data.error.message : "Syncing with Google servers. Wait 2 mins.";
-            alert("API Alert: " + msg);
+            // Detailed message agar ab bhi error aaye
+            const errorMsg = data.error ? data.error.message : "Checking model access...";
+            alert("API Alert: " + errorMsg + "\n\nTip: AI Studio mein 'Terms' confirm karein.");
         }
     } catch (e) {
         loading.style.display = "none";
-        alert("Internet Check Karein!");
+        alert("Internet issue!");
     }
 }
 </script>
