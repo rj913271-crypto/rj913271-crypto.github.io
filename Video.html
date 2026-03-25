@@ -3,66 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>40s AI Video Master 🎬</title>
+    <title>AI Reel Master 🎬</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #000; color: white; text-align: center; margin: 0; padding: 15px; }
-        .app-box { max-width: 400px; margin: auto; background: #111; border-radius: 25px; padding: 20px; border: 1px solid #333; }
-        textarea { width: 100%; height: 80px; background: #222; border: 1px solid #444; border-radius: 15px; padding: 12px; color: white; margin-top: 10px; outline: none; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        
-        /* 9:16 REEL FRAME */
-        #video-frame { 
-            width: 100%; 
-            height: 580px; 
-            background: #222; 
-            border-radius: 20px; 
-            margin-top: 20px; 
-            position: relative; 
-            overflow: hidden; 
-            display: none; 
-            border: 2px solid #007bff;
-        }
+        body { font-family: sans-serif; background: #000; color: white; text-align: center; padding: 20px; }
+        .box { max-width: 400px; margin: auto; background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; }
+        textarea { width: 100%; height: 80px; background: #222; color: white; border: 1px solid #444; border-radius: 12px; padding: 10px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; cursor: pointer; }
+        #reel-frame { width: 100%; height: 500px; background: #000; border-radius: 20px; margin-top: 20px; position: relative; overflow: hidden; display: none; border: 2px solid #007bff; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        #overlay-text { 
-            position: absolute; bottom: 40px; left: 15px; right: 15px;
-            background: rgba(0,0,0,0.7); padding: 15px; border-radius: 12px;
-            font-size: 16px; text-align: left; border-left: 5px solid yellow;
-        }
-        #dl-btn { background: #28a745; display: none; }
+        #caption { position: absolute; bottom: 30px; left: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 10px; font-size: 14px; text-align: left; border-left: 4px solid yellow; }
+        #audio-player { width: 100%; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="app-box">
-    <h2>40s AI Reel Creator 🚀</h2>
-    <textarea id="topic" placeholder="Likho: Deep Space Secrets (Long Story)..."></textarea>
-    <button class="btn" id="genBtn" onclick="generateLongVideo()">Create 40s Video ✨</button>
-    <button class="btn" id="dl-btn" onclick="downloadLogic()">📥 Download Final Video</button>
+<div class="box">
+    <h3>AI 40s Reel Creator 🚀</h3>
+    <textarea id="topic" placeholder="Likho: Space facts in Hindi..."></textarea>
+    <button class="btn" onclick="generateReel()">Create Video & Voice ✨</button>
     
-    <div id="loader" style="display:none; margin-top:15px;">AI Script & Voice taiyar ho rahi hai... ⏳</div>
+    <div id="loader" style="display:none; margin-top:10px; color:#007bff;">Processing... ⏳</div>
 
-    <div id="video-frame">
-        <video id="mainVideo" loop muted playsinline></video>
-        <div id="overlay-text"></div>
+    <div id="reel-frame">
+        <video id="bg-video" loop muted playsinline></video>
+        <div id="caption"></div>
     </div>
     
-    <audio id="mainAudio"></audio>
+    <audio id="audio-player" controls></audio>
 </div>
 
 <script>
-async function generateLongVideo() {
+async function generateReel() {
     const topic = document.getElementById('topic').value.trim();
-    if(!topic) return alert("Pehle topic likho!");
-
     const loader = document.getElementById('loader');
-    const frame = document.getElementById('video-frame');
-    const video = document.getElementById('mainVideo');
-    const audio = document.getElementById('mainAudio');
-    const overlay = document.getElementById('overlay-text');
-    const dlBtn = document.getElementById('dl-btn');
+    const frame = document.getElementById('reel-frame');
+    const video = document.getElementById('bg-video');
+    const caption = document.getElementById('caption');
+    const audio = document.getElementById('audio-player');
 
-    // API KEYS
+    if(!topic) return alert("Kuch toh likho!");
+
+    // YOUR API KEYS
     const groqKey = "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";
     const elevenKey = "Sk_3ada94e77dfae805d31312017c0741c3093118fb9afd5cee";
     const pexelsKey = "eKXTvfpgjiskX3vZVViZIGHyBgGNB8kB3SbLgjrKrkosXbfBdSG3KGWy";
@@ -71,47 +52,60 @@ async function generateLongVideo() {
     frame.style.display = "none";
 
     try {
-        // 1. Long Script (80-100 words approx 40s speech)
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        // 1. SCRIPT (Approx 40 seconds = ~100 words)
+        const gRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                model: "llama-3.3-70b-versatile", 
-                messages: [{ role: "user", content: "Write a 100-word interesting story in Hinglish about: " + topic }] 
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [{ role: "user", content: "Write a 80-word viral story in Hinglish for a video about: " + topic }]
             })
         });
-        const groqData = await groqRes.json();
-        const script = groqData.choices[0].message.content;
-        overlay.innerText = script;
+        const gData = await gRes.json();
+        const script = gData.choices[0].message.content;
+        caption.innerText = script;
 
-        // 2. Long Video (Portrait)
+        // 2. VIDEO (Pexels)
         const pRes = await fetch(`https://api.pexels.com/videos/search?query=${topic}&per_page=1&orientation=portrait`, {
             headers: { "Authorization": pexelsKey }
         });
         const pData = await pRes.json();
         video.src = pData.videos[0].video_files[0].link;
 
-        // 3. Voice (ElevenLabs Multilingual)
-        const vRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgnuMGrWqeXg`, {
+        // 3. VOICE (ElevenLabs - Multi-language Model)
+        // Maine voice ID badal kar 'Rachel' (21m00Tcm4TlvDq8ikWAM) kar di hai, ye sabse stable hai.
+        const voiceId = "21m00Tcm4TlvDq8ikWAM"; 
+        const vRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
             method: "POST",
-            headers: { "xi-api-key": elevenKey, "Content-Type": "application/json" },
-            body: JSON.stringify({ text: script, model_id: "eleven_multilingual_v2" })
+            headers: { 
+                "xi-api-key": elevenKey, 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({
+                text: script,
+                model_id: "eleven_multilingual_v2", // 40s ke liye ye model best hai
+                voice_settings: { stability: 0.5, similarity_boost: 0.5 }
+            })
         });
-        const audioBlob = await vRes.blob();
-        audio.src = URL.createObjectURL(audioBlob);
 
-        // Display Everything
-        frame.style.display = "block";
-        dlBtn.style.display = "block";
-        video.play();
-        audio.play();
+        if (vRes.ok) {
+            const blob = await vRes.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            audio.src = audioUrl;
+            audio.style.display = "block";
+            
+            frame.style.display = "block";
+            video.play();
+            audio.play();
+        } else {
+            const err = await vRes.json();
+            alert("ElevenLabs Error: " + err.detail.message);
+        }
 
-    } catch (e) { alert("API Limit Error! Dusri Gmail use karein."); }
+    } catch (e) {
+        alert("System Error! Check your internet or API keys.");
+    }
     loader.style.display = "none";
-}
-
-function downloadLogic() {
-    alert("Bhai, 40 second ki MP4 browser mein merge karna slow hai. Aap abhi Video aur Audio ko alag se download karke VN Editor mein merge kar sakte hain. Kya main Merge-API add karoon?");
 }
 </script>
 
