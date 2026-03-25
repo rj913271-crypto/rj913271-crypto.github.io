@@ -3,127 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Video Merger Pro 🎬</title>
+    <title>AI Unlimited Video Merger 🎬</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0d1117; color: white; text-align: center; padding: 20px; }
-        .container { max-width: 450px; margin: auto; background: #161b22; padding: 30px; border-radius: 25px; border: 1px solid #30363d; }
-        textarea { width: 100%; height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 12px; padding: 12px; color: white; margin-top: 10px; outline: none; }
-        .gen-btn { width: 100%; padding: 18px; background: #238636; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
-        #status-log { margin-top: 20px; font-size: 14px; color: #58a6ff; font-weight: bold; }
-        #final-download { display: none; margin-top: 20px; padding: 20px; background: #21262d; border-radius: 15px; border: 2px dashed #238636; }
-        .dl-link { background: #238636; color: white; padding: 12px 25px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; }
+        body { font-family: sans-serif; background: #000; color: white; text-align: center; padding: 15px; }
+        .box { max-width: 400px; margin: auto; background: #111; padding: 20px; border-radius: 25px; border: 1px solid #333; }
+        textarea { width: 100%; height: 60px; background: #222; border: 1px solid #444; border-radius: 12px; padding: 10px; color: white; outline: none; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* 9:16 REEL FRAME FOR RECORDING */
+        #recording-zone { width: 100%; height: 500px; background: #000; border-radius: 20px; margin-top: 20px; position: relative; overflow: hidden; display: none; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        #caption { position: absolute; bottom: 30px; left: 15px; right: 15px; background: rgba(0,0,0,0.8); padding: 12px; border-radius: 10px; font-size: 14px; text-align: left; color: yellow; border-left: 4px solid white; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>AI Video Merger 🚀</h2>
-    <p style="font-size: 11px; color: #8b949e;">Video + Audio Auto-Merging (1 Minute)</p>
+<div class="box">
+    <h2>AI Video Merger (Free) 🚀</h2>
+    <textarea id="topic" placeholder="Topic: Scary Horror Story..."></textarea>
+    <button class="btn" id="genBtn" onclick="startProcess()">Generate & Merge ✨</button>
+    <div id="status" style="margin-top:10px; color:#007bff; font-size:12px;"></div>
     
-    <textarea id="topic" placeholder="Likho: Deep sea mystery story..."></textarea>
-    
-    <button class="gen-btn" id="mainBtn" onclick="generateAndMerge()">Generate Merged Video ✨</button>
-    
-    <div id="status-log">Tayaar hain? Kuch likh kar shuru karein!</div>
-
-    <div id="final-download">
-        <p>Aapki Merged Video Taiyar Hai! 🎉</p>
-        <a id="mp4Link" class="dl-link" target="_blank">📥 Download Final MP4</a>
+    <div id="recording-zone">
+        <video id="bgVideo" loop muted playsinline></video>
+        <div id="caption"></div>
     </div>
+    
+    <button id="dlBtn" class="btn" style="display:none; background:#28a745;" onclick="downloadMP4()">📥 Download Final MP4</button>
 </div>
 
 <script>
-async function generateAndMerge() {
+let recorder;
+let chunks = [];
+
+async function startProcess() {
     const topic = document.getElementById('topic').value.trim();
-    const status = document.getElementById('status-log');
-    const dlBox = document.getElementById('final-download');
-    const btn = document.getElementById('mainBtn');
-    const mp4Link = document.getElementById('mp4Link');
+    const status = document.getElementById('status');
+    const zone = document.getElementById('recording-zone');
+    const video = document.getElementById('bgVideo');
+    const caption = document.getElementById('caption');
 
-    if(!topic) return alert("Bhai, topic likhna zaroori hai!");
+    if(!topic) return alert("Pehle topic likho!");
 
-    // KEYS ✅
+    // APIs
     const groqKey = "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";
-    const shotstackKey = "jJhj3hBWUb61gRyZMelMHtOACfsfWqqlZ9sQofkI"; // Aapki Production Key
     const pexelsKey = "eKXTvfpgjiskX3vZVViZIGHyBgGNB8kB3SbLgjrKrkosXbfBdSG3KGWy";
 
-    status.innerText = "1. Writing 1-Minute Script... ✍️";
-    btn.disabled = true;
-    dlBox.style.display = "none";
+    status.innerText = "Writing 1-Minute Script... ✍️";
 
     try {
-        // 1. SCRIPT GENERATION
+        // 1. Script (130 words)
         const gRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                model: "llama-3.3-70b-versatile", 
-                messages: [{ role: "user", content: "Write a 120-word deep story in Hinglish: " + topic }] 
-            })
+            body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{ role: "user", content: "Write a 120-word deep story in Hinglish: " + topic }] })
         });
         const gData = await gRes.json();
-        const scriptText = gData.choices[0].message.content;
+        const script = gData.choices[0].message.content;
 
-        // 2. VIDEO FETCH (Pexels)
-        status.innerText = "2. Fetching Background Video... 🎥";
+        // 2. Video (Pexels)
+        status.innerText = "Fetching Video... 🎥";
         const pRes = await fetch(`https://api.pexels.com/videos/search?query=${topic}&per_page=1&orientation=portrait`, {
             headers: { "Authorization": pexelsKey }
         });
         const pData = await pRes.json();
-        const videoSource = pData.videos[0].video_files[0].link;
-
-        // 3. MERGING LOGIC (Shotstack API)
-        status.innerText = "3. Merging Audio & Video on Cloud... ⚙️";
         
-        // Yahan hum Shotstack ko instruction bhejte hain merge karne ke liye
-        const shotstackData = {
-            timeline: {
-                tracks: [
-                    { clips: [{ asset: { type: "video", src: videoSource }, start: 0, length: 60 }] }
-                ]
-            },
-            output: { format: "mp4", resolution: "hd" }
+        video.src = pData.videos[0].video_files[0].link;
+        caption.innerText = script;
+        zone.style.display = "block";
+        video.play();
+
+        // 3. Unlimited Voice & Auto-Merge Start
+        status.innerText = "Merging Voice & Video... ⚙️";
+        const speech = new SpeechSynthesisUtterance(script);
+        speech.lang = 'hi-IN';
+        speech.rate = 0.9;
+
+        // Recording the frame
+        const stream = zone.captureStream(30); // Capture at 30fps
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.onstop = () => {
+            document.getElementById('dlBtn').style.display = "block";
+            status.innerText = "Merge Successful! ✅";
         };
 
-        const sRes = await fetch("https://api.shotstack.io/edit/v1/render", {
-            method: "POST",
-            headers: { "x-api-key": shotstackKey, "Content-Type": "application/json" },
-            body: JSON.stringify(shotstackData)
-        });
+        recorder.start();
+        window.speechSynthesis.speak(speech);
 
-        const sData = await sRes.json();
-        const renderId = sData.response.id;
-
-        // 4. CHECK STATUS (Loop tab tak jab tak video ban na jaye)
-        status.innerText = "4. Video Render ho rahi hai... (30-40 seconds lagenge) ⏳";
-        
-        const checkStatus = setInterval(async () => {
-            const pollRes = await fetch(`https://api.shotstack.io/edit/v1/render/${renderId}`, {
-                headers: { "x-api-key": shotstackKey }
-            });
-            const pollData = await pollRes.json();
-
-            if (pollData.response.status === "done") {
-                clearInterval(checkStatus);
-                status.innerText = "Merge Successful! ✅";
-                mp4Link.href = pollData.response.url;
-                dlBox.style.display = "block";
-                btn.disabled = false;
-            } else if (pollData.response.status === "failed") {
-                clearInterval(checkStatus);
-                status.innerText = "Merging failed! Shotstack limit check karein.";
-                btn.disabled = false;
-            }
-        }, 5000);
+        // Jab speech khatam ho jaye, recording band kar do
+        speech.onend = () => {
+            recorder.stop();
+            video.pause();
+        };
 
     } catch (e) {
-        status.innerText = "Error! Key block ho gayi hai shayad.";
-        btn.disabled = false;
+        status.innerText = "Error! Kuch der baad try karein.";
     }
+}
+
+function downloadMP4() {
+    const blob = new Blob(chunks, { type: 'video/mp4' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AI_Merged_Video.mp4';
+    a.click();
 }
 </script>
 
 </body>
 </html>
-
