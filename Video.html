@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Magic Script ✨</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 25px; background: #fdf1e1; margin: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+        body { font-family: 'Poppins', sans-serif; text-align: center; padding: 25px; background: #fdf1e1; margin: 0; }
         .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; width: 95%; max-width: 420px; border: 2.5px solid #f45a32; }
         textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; }
-        button { width: 100%; padding: 15px; background: #f45a32; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button { width: 100%; padding: 15px; background: linear-gradient(90deg, #f45a32, #ff9545); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
         #loader { display: none; margin-top: 15px; font-weight: bold; color: #f45a32; }
         #result { margin-top: 25px; text-align: left; background: #f9f9f9; padding: 18px; border-radius: 15px; border: 1px solid #ccc; display: none; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #333; }
     </style>
@@ -16,14 +17,14 @@
 <body>
 
 <div class="box">
-    <h3>AI Magic Script ✨</h3>
-    <p style="color: blue; font-size: 11px; font-weight: bold;">MULTI-MODEL SCANNER ACTIVE ✅</p>
+    <h2 style="margin:0;">AI Magic Script ✨</h2>
+    <p style="color: green; font-size: 11px; font-weight: bold; margin-top:5px;">FREE TIER STABLE PATH ✅</p>
     
-    <textarea id="topic" placeholder="Likho: Cricket Funny Script..."></textarea>
+    <textarea id="topic" placeholder="Likho: 5 Amazing Space Facts..."></textarea>
     
     <button id="genBtn" onclick="runAI()">Generate Script 🚀</button>
     
-    <div id="loader">AI rasta dhoond raha hai...</div>
+    <div id="loader">AI soch raha hai...</div>
     <div id="result"></div>
 </div>
 
@@ -33,40 +34,44 @@ async function runAI() {
     const resDiv = document.getElementById('result');
     const loading = document.getElementById('loader');
 
-    if(!topic) return alert("Kuch toh likho bhai!");
+    if(!topic) return alert("Bhai, pehle topic toh likho!");
 
+    // AAPKI LATEST DEFAULT PROJECT KEY (From Screenshot)
     const apiKey = "AIzaSyCii7ry4SvwTpixl0Tj9a0XXNss_OT5B4E";
     
-    // List of models to try
-    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"];
-    
+    /* IMPORTANT: Hum v1 version aur gemini-1.5-flash use karenge.
+       Playground isi stable endpoint par response deta hai.
+    */
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
     loading.style.display = "block";
     resDiv.style.display = "none";
 
-    for (let modelName of models) {
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: "Write a short viral script: " + topic }] }] })
-            });
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: "Write a short viral Hinglish video script for: " + topic }] }]
+            })
+        });
 
-            const data = await response.json();
-            
-            if (data.candidates && data.candidates[0].content) {
-                resDiv.innerText = data.candidates[0].content.parts[0].text;
-                resDiv.style.display = "block";
-                loading.style.display = "none";
-                return; // SUCCESS! Stop searching
-            }
-        } catch (e) {
-            console.log(modelName + " failed...");
+        const data = await response.json();
+        loading.style.display = "none";
+
+        if (data.candidates && data.candidates[0].content) {
+            resDiv.innerText = data.candidates[0].content.parts[0].text;
+            resDiv.style.display = "block";
+        } else {
+            // Detailed message for debugging
+            const errorMsg = data.error ? data.error.message : "Sync error. Please try again.";
+            alert("System Message: " + errorMsg);
+            console.log("Full Error Data:", data);
         }
+    } catch (e) {
+        loading.style.display = "none";
+        alert("Internet issue! Please check your connection.");
     }
-
-    loading.style.display = "none";
-    alert("API Alert: Saare models fail ho gaye. Ek baar AI Studio mein Terms Accept karein.");
 }
 </script>
 
