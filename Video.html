@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Master - Stable Fix ✅</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 25px; background: #fdf1e1; margin: 0; }
+        .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; width: 95%; max-width: 400px; border: 2.5px solid #f45a32; }
+        textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border: 1.5px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; }
+        button { width: 100%; padding: 15px; background: #f45a32; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        #loader { display: none; margin-top: 15px; font-weight: bold; color: #f45a32; }
+        #result { margin-top: 20px; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ccc; display: none; white-space: pre-wrap; font-size: 14px; line-height: 1.5; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h3>AI Magic Script ✨</h3>
+    <p style="color: purple; font-size: 11px; font-weight: bold;">MODE: LEGACY BYPASS (STABLE)</p>
+    
+    <textarea id="topic" placeholder="Likho: Cricket Funny Facts"></textarea>
+    
+    <button id="genBtn" onclick="runAI()">Generate Script 🚀</button>
+    
+    <div id="loader">AI dimag laga raha hai...</div>
+    <div id="result"></div>
+</div>
+
+<script>
+async function runAI() {
+    const topic = document.getElementById('topic').value.trim();
+    const resDiv = document.getElementById('result');
+    const loading = document.getElementById('loader');
+
+    if(!topic) return alert("Pehle topic likho!");
+
+    // AAPKI FRESH DEFAULT PROJECT KEY
+    const apiKey = "AIzaSyCii7ry4SvwTpixl0Tj9a0XXNss_OT5B4E";
+    
+    // YEH URL Gemini Pro use karega jo naye accounts par bypass ke liye best hai
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+
+    loading.style.display = "block";
+    resDiv.style.display = "none";
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: "Write a short viral Hinglish video script for: " + topic }] }]
+            })
+        });
+
+        const data = await response.json();
+        loading.style.display = "none";
+
+        if(data.candidates && data.candidates[0].content) {
+            resDiv.innerText = data.candidates[0].content.parts[0].text;
+            resDiv.style.display = "block";
+        } else {
+            // Detailed message for fix
+            const msg = data.error ? data.error.message : "Syncing with Google servers. Wait 2 mins.";
+            alert("API Alert: " + msg);
+        }
+    } catch (e) {
+        loading.style.display = "none";
+        alert("Internet Check Karein!");
+    }
+}
+</script>
+
+</body>
+</html>
