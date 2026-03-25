@@ -5,95 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Reel Master 🎬</title>
     <style>
-        body { font-family: sans-serif; background: #000; color: white; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; }
-        textarea { width: 100%; height: 80px; background: #222; color: white; border: 1px solid #444; border-radius: 12px; padding: 10px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; cursor: pointer; }
-        #reel-frame { width: 100%; height: 500px; background: #000; border-radius: 20px; margin-top: 20px; position: relative; overflow: hidden; display: none; border: 2px solid #007bff; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #000; color: white; text-align: center; margin: 0; padding: 15px; }
+        .container { max-width: 400px; margin: auto; background: #111; border-radius: 25px; padding: 20px; border: 1px solid #333; }
+        textarea { width: 100%; height: 70px; background: #222; border: 1px solid #444; border-radius: 12px; padding: 12px; color: white; margin-top: 10px; outline: none; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        #reel-frame { width: 100%; height: 550px; background: #000; border-radius: 20px; margin-top: 20px; position: relative; overflow: hidden; display: none; border: 2px solid #007bff; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        #caption { position: absolute; bottom: 30px; left: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 10px; font-size: 14px; text-align: left; border-left: 4px solid yellow; }
-        #audio-player { width: 100%; margin-top: 15px; display: none; }
+        #caption { position: absolute; bottom: 30px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 12px; border-radius: 12px; font-size: 15px; text-align: left; border-left: 5px solid yellow; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h3>AI 40s Reel Creator 🚀</h3>
-    <textarea id="topic" placeholder="Likho: Space facts in Hindi..."></textarea>
-    <button class="btn" onclick="generateReel()">Create Video & Voice ✨</button>
+<div class="container">
+    <h2>40s AI Reel Master 🚀</h2>
+    <textarea id="topic" placeholder="Topic: Importance of Discipline..."></textarea>
+    <button class="btn" id="genBtn" onclick="generate40sReel()">Create 40s Video ✨</button>
     
-    <div id="loader" style="display:none; margin-top:10px; color:#007bff;">Processing... ⏳</div>
+    <div id="loader" style="display:none; margin-top:15px; color:#38bdf8;">AI is writing & speaking... ⏳</div>
 
     <div id="reel-frame">
-        <video id="bg-video" loop muted playsinline></video>
+        <video id="mainVideo" loop muted playsinline></video>
         <div id="caption"></div>
     </div>
     
-    <audio id="audio-player" controls></audio>
+    <audio id="mainAudio" controls style="width:100%; margin-top:15px; display:none;"></audio>
 </div>
 
 <script>
-async function generateReel() {
+async function generate40sReel() {
     const topic = document.getElementById('topic').value.trim();
     const loader = document.getElementById('loader');
     const frame = document.getElementById('reel-frame');
-    const video = document.getElementById('bg-video');
+    const video = document.getElementById('mainVideo');
     const caption = document.getElementById('caption');
-    const audio = document.getElementById('audio-player');
+    const audio = document.getElementById('mainAudio');
+    const btn = document.getElementById('genBtn');
 
-    if(!topic) return alert("Kuch toh likho!");
+    if(!topic) return alert("Pehle topic likho!");
 
-    // YOUR API KEYS
+    // SAARI KEYS UPDATED HAIN ✅
     const groqKey = "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";
-    const elevenKey = "Sk_3ada94e77dfae805d31312017c0741c3093118fb9afd5cee";
     const pexelsKey = "eKXTvfpgjiskX3vZVViZIGHyBgGNB8kB3SbLgjrKrkosXbfBdSG3KGWy";
+    const elevenKey = "c15666ab2d3940c8502fc5087529d48e25d363330d2536220e09fb35a6183e14"; 
 
     loader.style.display = "block";
     frame.style.display = "none";
+    btn.disabled = true;
 
     try {
-        // 1. SCRIPT (Approx 40 seconds = ~100 words)
+        // 1. Long Script (~100 words for 40s)
         const gRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [{ role: "user", content: "Write a 80-word viral story in Hinglish for a video about: " + topic }]
+            body: JSON.stringify({ 
+                model: "llama-3.3-70b-versatile", 
+                messages: [{ role: "user", content: "Write a 100-word deep motivational story in Hinglish about: " + topic }] 
             })
         });
         const gData = await gRes.json();
         const script = gData.choices[0].message.content;
         caption.innerText = script;
 
-        // 2. VIDEO (Pexels)
+        // 2. Portrait Video (Pexels)
         const pRes = await fetch(`https://api.pexels.com/videos/search?query=${topic}&per_page=1&orientation=portrait`, {
             headers: { "Authorization": pexelsKey }
         });
         const pData = await pRes.json();
         video.src = pData.videos[0].video_files[0].link;
 
-        // 3. VOICE (ElevenLabs - Multi-language Model)
-        // Maine voice ID badal kar 'Rachel' (21m00Tcm4TlvDq8ikWAM) kar di hai, ye sabse stable hai.
-        const voiceId = "21m00Tcm4TlvDq8ikWAM"; 
+        // 3. Voice (ElevenLabs Fixed)
+        const voiceId = "pNInz6obpgnuMGrWqeXg"; // Adam Voice
         const vRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
             method: "POST",
-            headers: { 
-                "xi-api-key": elevenKey, 
-                "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({
-                text: script,
-                model_id: "eleven_multilingual_v2", // 40s ke liye ye model best hai
-                voice_settings: { stability: 0.5, similarity_boost: 0.5 }
+            headers: { "xi-api-key": elevenKey, "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                text: script, 
+                model_id: "eleven_multilingual_v2",
+                voice_settings: { stability: 0.5, similarity_boost: 0.8 } 
             })
         });
 
-        if (vRes.ok) {
+        if(vRes.ok) {
             const blob = await vRes.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            audio.src = audioUrl;
+            audio.src = URL.createObjectURL(blob);
             audio.style.display = "block";
-            
             frame.style.display = "block";
             video.play();
             audio.play();
@@ -103,9 +99,11 @@ async function generateReel() {
         }
 
     } catch (e) {
-        alert("System Error! Check your internet or API keys.");
+        alert("Check your API connection!");
+    } finally {
+        loader.style.display = "none";
+        btn.disabled = false;
     }
-    loader.style.display = "none";
 }
 </script>
 
