@@ -18,13 +18,13 @@
 
 <div class="box">
     <h2 style="margin:0;">AI Magic Script ✨</h2>
-    <p style="color: green; font-size: 11px; font-weight: bold; margin-top:5px;">FREE TIER STABLE PATH ✅</p>
+    <p style="color: blue; font-size: 11px; font-weight: bold; margin-top:5px;">ULTRA-STABLE 2026 PATH ✅</p>
     
-    <textarea id="topic" placeholder="Likho: 5 Amazing Space Facts..."></textarea>
+    <textarea id="topic" placeholder="Likho: Cricket Funny Facts"></textarea>
     
     <button id="genBtn" onclick="runAI()">Generate Script 🚀</button>
     
-    <div id="loader">AI soch raha hai...</div>
+    <div id="loader">AI dimag laga raha hai...</div>
     <div id="result"></div>
 </div>
 
@@ -34,15 +34,16 @@ async function runAI() {
     const resDiv = document.getElementById('result');
     const loading = document.getElementById('loader');
 
-    if(!topic) return alert("Bhai, pehle topic toh likho!");
+    if(!topic) return alert("Kuch toh likho bhai!");
 
-    // AAPKI LATEST DEFAULT PROJECT KEY (From Screenshot)
+    // AAPKI LATEST DEFAULT PROJECT KEY
     const apiKey = "AIzaSyCii7ry4SvwTpixl0Tj9a0XXNss_OT5B4E";
     
-    /* IMPORTANT: Hum v1 version aur gemini-1.5-flash use karenge.
-       Playground isi stable endpoint par response deta hai.
+    /* MASTER FIX: 
+       Hum v1beta version use karenge kyunki naye accounts ke Free Tier models 
+       isi par active hote hain.
     */
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     loading.style.display = "block";
     resDiv.style.display = "none";
@@ -52,7 +53,7 @@ async function runAI() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "Write a short viral Hinglish video script for: " + topic }] }]
+                contents: [{ parts: [{ text: "Write a short viral script for: " + topic }] }]
             })
         });
 
@@ -63,14 +64,14 @@ async function runAI() {
             resDiv.innerText = data.candidates[0].content.parts[0].text;
             resDiv.style.display = "block";
         } else {
-            // Detailed message for debugging
-            const errorMsg = data.error ? data.error.message : "Sync error. Please try again.";
+            // Detailed message for fix
+            const errorMsg = data.error ? data.error.message : "Sync error. Wait 2 mins.";
             alert("System Message: " + errorMsg);
-            console.log("Full Error Data:", data);
+            console.log(data);
         }
     } catch (e) {
         loading.style.display = "none";
-        alert("Internet issue! Please check your connection.");
+        alert("Internet connection check karein!");
     }
 }
 </script>
