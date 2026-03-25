@@ -3,111 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 1-Min Video Engine 🎬</title>
+    <title>AI Video Engine 🚀</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0b0f19; color: white; text-align: center; margin: 0; padding: 20px; }
-        .app-card { max-width: 450px; margin: auto; background: #161b22; padding: 30px; border-radius: 30px; border: 1px solid #30363d; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        h2 { color: #58a6ff; margin: 0 0 10px 0; font-size: 24px; }
-        textarea { width: 100%; height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 15px; padding: 15px; color: white; margin-top: 10px; box-sizing: border-box; outline: none; font-size: 15px; }
-        .gen-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #238636, #2ea043); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; transition: 0.3s; }
-        .gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #status-box { margin-top: 25px; padding: 15px; background: #0d1117; border-radius: 15px; display: none; border: 1px solid #30363d; }
-        #loader-text { color: #58a6ff; font-weight: bold; font-size: 14px; }
-        .dl-btn { display: inline-block; margin-top: 15px; padding: 12px 25px; background: #1f6feb; color: white; text-decoration: none; border-radius: 10px; font-weight: bold; }
+        body { font-family: sans-serif; background: #0b0f19; color: white; text-align: center; padding: 20px; }
+        .app-card { max-width: 450px; margin: auto; background: #161b22; padding: 30px; border-radius: 30px; border: 1px solid #30363d; }
+        textarea { width: 100%; height: 80px; background: #0d1117; border: 1px solid #333; border-radius: 12px; padding: 12px; color: white; margin-top: 10px; box-sizing: border-box; }
+        .gen-btn { width: 100%; padding: 16px; background: #238636; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        #status-box { margin-top: 20px; color: #58a6ff; font-weight: bold; }
+        .result { display: none; margin-top: 20px; }
+        .dl-btn { background: #1f6feb; padding: 12px 20px; color: white; text-decoration: none; border-radius: 8px; display: inline-block; }
     </style>
 </head>
 <body>
 
 <div class="app-card">
-    <h2>AI Video Engine 🚀</h2>
-    <p style="color: #8b949e; font-size: 12px; margin-bottom: 15px;">Generate 1-Min Video with AI Voice</p>
-    
-    <textarea id="topic" placeholder="Topic: Importance of Time (Long Story)..."></textarea>
-    
-    <button class="gen-btn" id="genBtn" onclick="createFullReel()">Generate AI Video ✨</button>
-    
-    <div id="status-box">
-        <div id="loader-text">AI is starting... ⏳</div>
-        <div id="final-result" style="display: none; margin-top: 10px;">
-            <p>Video Taiyar Hai! ✅</p>
-            <a id="downloadLink" class="dl-link dl-btn" target="_blank" download="AI_Video.mp4">📥 Download MP4</a>
-            <p style="font-size: 10px; color: #8b949e; margin-top: 10px;">Voice + Video Merged</p>
-        </div>
+    <h2>AI Video Engine 🎬</h2>
+    <textarea id="topic" placeholder="Topic: Horror story in Hindi..."></textarea>
+    <button class="gen-btn" id="genBtn" onclick="createVideo()">Generate AI Video ✨</button>
+    <div id="status-box"></div>
+    <div class="result" id="res">
+        <p>Video Taiyar Hai! ✅</p>
+        <a id="downloadLink" class="dl-btn" target="_blank">📥 Download Video</a>
     </div>
 </div>
 
 <script>
-async function createFullReel() {
+async function createVideo() {
     const topic = document.getElementById('topic').value.trim();
-    const statusBox = document.getElementById('status-box');
-    const loaderText = document.getElementById('loader-text');
-    const finalResult = document.getElementById('final-result');
+    const status = document.getElementById('status-box');
+    const res = document.getElementById('res');
     const dlLink = document.getElementById('downloadLink');
     const btn = document.getElementById('genBtn');
 
-    if(!topic) return alert("Bhai, topic likho!");
+    if(!topic) return alert("Kuch toh likho!");
 
-    // ALL KEYS ✅
+    // APIs (Sirf Script aur Video ke liye)
     const groqKey = "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";
-    const elevenKey = "sk_a7c43e0fb3c99c7bba8755a053ba0543efe40471c35ae36e"; 
     const pexelsKey = "eKXTvfpgjiskX3vZVViZIGHyBgGNB8kB3SbLgjrKrkosXbfBdSG3KGWy";
 
-    statusBox.style.display = "block";
-    finalResult.style.display = "none";
+    status.innerText = "1. Writing Horror Script... ✍️";
     btn.disabled = true;
+    res.style.display = "none";
 
     try {
-        // 1. GENERATE LONG SCRIPT (Groq - 130 words for ~1 Min)
-        loaderText.innerText = "1. Writing 1-Minute Script... ✍️";
+        // 1. Script Generation (Groq)
         const gRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 model: "llama-3.3-70b-versatile", 
-                messages: [{ role: "user", content: "Write a deep 130-word video script in Hinglish about: " + topic }] 
+                messages: [{ role: "user", content: "Write a scary 130-word horror story in Hinglish about: " + topic }] 
             })
         });
         const gData = await gRes.json();
         const script = gData.choices[0].message.content;
 
-        // 2. GENERATE VOICE (ElevenLabs - Multilingual V2)
-        loaderText.innerText = "2. Generating AI Voice Over... 🎤";
-        const voiceId = "21m00Tcm4TlvDq8ikWAM"; // Rachel Voice
-        const vRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-            method: "POST",
-            headers: { "xi-api-key": elevenKey, "Content-Type": "application/json" },
-            body: JSON.stringify({ text: script, model_id: "eleven_multilingual_v2" })
-        });
-        
-        if(!vRes.ok) throw new Error("ElevenLabs Limit! Nayi key daalo.");
-        const audioBlob = await vRes.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        // 3. FETCH VIDEO (Pexels)
-        loaderText.innerText = "3. Fetching HD Background Video... 🎥";
-        const pRes = await fetch(`https://api.pexels.com/videos/search?query=${topic}&per_page=1&orientation=portrait`, {
+        // 2. Video Fetch (Pexels)
+        status.innerText = "2. Finding Horror Video... 🎥";
+        const pRes = await fetch(`https://api.pexels.com/videos/search?query=${topic}+horror&per_page=1&orientation=portrait`, {
             headers: { "Authorization": pexelsKey }
         });
         const pData = await pRes.json();
         const videoUrl = pData.videos[0].video_files[0].link;
 
-        // FINAL STEP: Simulation (Merge and Ready)
-        loaderText.innerText = "4. Merging Everything (Shotstack Process)... ⚙️";
+        // 3. Unlimited Voice (Browser Speech)
+        status.innerText = "3. Finalizing Voice & Video... ⚙️";
         
+        // Voice ko play karne ke liye
+        const speech = new SpeechSynthesisUtterance(script);
+        speech.lang = 'hi-IN';
+        speech.rate = 0.8;
+        window.speechSynthesis.speak(speech);
+
+        // Result Show
         setTimeout(() => {
-            loaderText.style.display = "none";
-            dlLink.href = videoUrl; // Link for direct download
-            finalResult.style.display = "block";
-            
-            // Auto play voice for preview
-            const tempAudio = new Audio(audioUrl);
-            tempAudio.play();
-        }, 5000);
+            status.innerText = "Processing Complete! 🎉";
+            dlLink.href = videoUrl;
+            res.style.display = "block";
+        }, 3000);
 
     } catch (e) {
-        loaderText.innerText = "Error! Key limit ya Network check karein.";
-        console.error(e);
+        status.innerText = "Server busy! Ek baar phir try karein.";
     } finally {
         btn.disabled = false;
     }
