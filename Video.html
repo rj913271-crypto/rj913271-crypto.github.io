@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Master - Final Fix ✅</title>
+    <title>AI Magic Script ✨</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 30px; background: #fdf1e1; margin: 0; }
+        body { font-family: sans-serif; text-align: center; padding: 25px; background: #fdf1e1; margin: 0; }
         .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; width: 95%; max-width: 420px; border: 2.5px solid #f45a32; }
-        textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border: 1.5px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; }
+        textarea { width: 100%; height: 100px; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; }
         button { width: 100%; padding: 15px; background: #f45a32; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; }
         #loader { display: none; margin-top: 15px; font-weight: bold; color: #f45a32; }
-        #result { margin-top: 20px; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #ccc; display: none; white-space: pre-wrap; font-size: 14px; line-height: 1.5; color: #333; }
+        #result { margin-top: 25px; text-align: left; background: #f9f9f9; padding: 18px; border-radius: 15px; border: 1px solid #ccc; display: none; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #333; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <h3>AI Magic Script ✨</h3>
-    <p style="color: blue; font-size: 11px; font-weight: bold;">GITHUB PAGES: STABLE MODE ✅</p>
+    <p style="color: blue; font-size: 11px; font-weight: bold;">MULTI-MODEL SCANNER ACTIVE ✅</p>
     
-    <textarea id="topic" placeholder="Likho: Cricket Funny Facts"></textarea>
+    <textarea id="topic" placeholder="Likho: Cricket Funny Script..."></textarea>
     
     <button id="genBtn" onclick="runAI()">Generate Script 🚀</button>
     
-    <div id="loader">AI soch raha hai...</div>
+    <div id="loader">AI rasta dhoond raha hai...</div>
     <div id="result"></div>
 </div>
 
@@ -33,41 +33,40 @@ async function runAI() {
     const resDiv = document.getElementById('result');
     const loading = document.getElementById('loader');
 
-    if(!topic) return alert("Kuch toh likho!");
+    if(!topic) return alert("Kuch toh likho bhai!");
 
-    // AAPKI LATEST KEY
     const apiKey = "AIzaSyCii7ry4SvwTpixl0Tj9a0XXNss_OT5B4E";
     
-    // YEH URL Gemini 1.5 Flash (v1beta) par 100% stable hai
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
+    // List of models to try
+    const models = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"];
+    
     loading.style.display = "block";
     resDiv.style.display = "none";
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: "Write a short viral Hinglish video script for: " + topic }] }]
-            })
-        });
+    for (let modelName of models) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: "Write a short viral script: " + topic }] }] })
+            });
 
-        const data = await response.json();
-        loading.style.display = "none";
-
-        if(data.candidates && data.candidates[0].content) {
-            resDiv.innerText = data.candidates[0].content.parts[0].text;
-            resDiv.style.display = "block";
-        } else {
-            // Detailed message agar ab bhi error aaye
-            const errorMsg = data.error ? data.error.message : "Checking model access...";
-            alert("API Alert: " + errorMsg + "\n\nTip: AI Studio mein 'Terms' confirm karein.");
+            const data = await response.json();
+            
+            if (data.candidates && data.candidates[0].content) {
+                resDiv.innerText = data.candidates[0].content.parts[0].text;
+                resDiv.style.display = "block";
+                loading.style.display = "none";
+                return; // SUCCESS! Stop searching
+            }
+        } catch (e) {
+            console.log(modelName + " failed...");
         }
-    } catch (e) {
-        loading.style.display = "none";
-        alert("Internet issue!");
     }
+
+    loading.style.display = "none";
+    alert("API Alert: Saare models fail ho gaye. Ek baar AI Studio mein Terms Accept karein.");
 }
 </script>
 
