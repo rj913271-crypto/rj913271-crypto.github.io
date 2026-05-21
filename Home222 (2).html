@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    
+    <meta name="monetag" content="98d00aa55df67374d622196592aa2158">
+    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Premium Reward - Home</title>
+<script>
+(function() {
+    const p = new URLSearchParams(window.location.search);
+    const u = p.get('uid') || localStorage.getItem("user_mobile");
+    if (!u || u === "null" || u === "" || u === "undefined" || u === null) {
+        window.location.replace("Login.html");
+    }
+})();
+function checkNet() {
+    if (!navigator.onLine) {
+        document.body.style.pointerEvents = "none";
+        document.body.style.opacity = "0.6";
+        return false;
+    } else {
+        document.body.style.pointerEvents = "all";
+        document.body.style.opacity = "1";
+        return true;
+    }
+}
+window.addEventListener('offline', checkNet);
+window.addEventListener('online', checkNet);
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #fdf1e1; color: #333; overflow-y: auto; height: 100vh; }
+    
+    .loading-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: none; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #f45a32; border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .bg-gradient { background: linear-gradient(180deg, #f45a32 0%, #ff9545 40%, #fdf1e1 100%); height: 400px; width: 100%; position: absolute; top: 0; z-index: -1; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 20px 8px 20px; color: white; }
+    .profile-img { width: 44px; height: 44px; border-radius: 50%; border: 2px solid white; object-fit: cover; background: #ddd; }
+    
+    .notif-container { position: relative; display: inline-block; }
+    .notif-btn { background: rgba(255,255,255,0.18); padding: 10px; border-radius: 50%; color: white; cursor: pointer; transition: 0.3s; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); }
+    .notif-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
+    .notif-btn i { font-size: 18px; }
+    
+    .notif-badge { position: absolute; top: -2px; right: -2px; background: #ff2a2a; color: white; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid #f45a32; box-shadow: 0 0 10px rgba(255, 42, 42, 0.8); animation: pulseGlow 1.5s infinite alternate; }
+    @keyframes pulseGlow { 0% { box-shadow: 0 0 4px rgba(255, 42, 42, 0.6); } 100% { box-shadow: 0 0 12px rgba(255, 42, 42, 1); transform: scale(1.05); } }
+
+    #uLevelTag { background: white; padding: 3px 10px; border-radius: 50px; font-size: 10px; font-weight: 800; margin-top: 4px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; }
+    .sticky-wallet-container { position: sticky; top: 0; z-index: 200; padding: 8px 0; }
+    .wallet-card { background: #681212; width: 90%; margin: 0 auto; border-radius: 20px; padding: 14px 12px; text-align: center; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .balance-amount { font-size: 24px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0; }
+    .money-rs-tag-home { background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; border: 1px solid rgba(255,255,255,0.2); font-size: 11px; }
+    .my-wallet-btn { background: linear-gradient(90deg, #f45a32, #ff9545); border: none; padding: 10px; border-radius: 12px; color: white; font-weight: 700; width: 90%; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px auto 0; font-size: 11px; text-decoration: none; cursor: pointer; }
+
+    .withdrawal-ticker-card { width: 90%; margin: 6px auto; background: linear-gradient(135deg, #111111 0%, #2a0808 100%); border-radius: 14px; padding: 8px 16px; border: 1px dashed #f45a32; box-shadow: 0 4px 15px rgba(244, 90, 50, 0.15); text-align: center; overflow: hidden; height: 38px; display: flex; align-items: center; justify-content: center; }
+    .ticker-content { font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px; opacity: 0; transform: translateY(15px); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .ticker-content.show { opacity: 1; transform: translateY(0); }
+    .ticker-content.hide { opacity: 0; transform: translateY(-15px); }
+    .ticker-coin-badge { background: linear-gradient(90deg, #2ecc71, #27ae60); color: white; padding: 2px 8px; border-radius: 50px; font-size: 9.5px; box-shadow: 0 2px 6px rgba(46,204,113,0.3); }
+
+    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 16px; }
+    .action-card { background: white; padding: 12px 4px; border-radius: 18px; text-align: center; border: 2px solid #f45a32; box-shadow: 0 0 8px rgba(244, 90, 50, 0.25); }
+    .icon-circle { width: 40px; height: 40px; margin: 0 auto 6px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .ic-daily { background: #fff5f2; color: #f45a32; }
+    .ic-quiz { background: #f2f9ff; color: #3498db; }
+    .ic-visit { background: #f2fff6; color: #2ecc71; }
+    .action-card p { font-size: 8.5px; font-weight: 700; color: #444; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-card { background: white; width: 92%; max-width: 300px; border-radius: 28px; padding: 24px 16px; text-align: center; color: #333; position: relative; max-height: 85vh; overflow-y: auto; border: 2px solid #f45a32; box-shadow: 0 0 16px rgba(244, 90, 50, 0.4); }
+    .close-modal { position: absolute; top: 16px; right: 20px; font-size: 18px; color: #333; cursor: pointer; }
+    .install-item { background: white; border-radius: 14px; padding: 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: #333; text-align: left; border: 1px solid #f45a32; }
+    .android-logo-img { width: 36px; height: 36px; margin-right: 12px; }
+    .install-btn-action { background: #2ecc71; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .section-title { padding: 20px 20px 12px; font-size: 15px; font-weight: 700; }
+    .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
+    .task-card { background: white; border-radius: 18px; padding: 6px; text-align: center; border: 2px solid #f45a32; box-shadow: 0 0 8px rgba(244, 90, 50, 0.25); }
+    .social-logo { width: 34px; height: 34px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; }
+    .social-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .task-btn { background: #ff8146; border: none; color: white; width: 100%; padding: 6px; border-radius: 8px; font-weight: 700; font-size: 8px; cursor: pointer; }
+    .promo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px; }
+    .promo-service-card { background: #fff; border: 2px solid #6a11cb; border-radius: 16px; padding: 12px; text-align: center; box-shadow: 0 4px 12px rgba(106, 17, 203, 0.12); cursor: pointer; transition: 0.3s; }
+    .promo-service-card:active { transform: scale(0.95); }
+    .promo-service-card i { font-size: 22px; color: #6a11cb; margin-bottom: 6px; }
+    .promo-service-card p { font-size: 9px; font-weight: 700; color: #333; margin-top: 4px; }
+    .progress-box { width: 100%; background: rgba(244, 90, 50, 0.1); height: 10px; border-radius: 8px; margin-top: 16px; overflow: hidden; display: none; }
+    .progress-fill { width: 0%; height: 100%; background: #2ecc71; transition: width 7s linear; }
+    .bottom-nav { position: fixed; bottom: 12px; left: 5%; width: 90%; background: white; display: flex; justify-content: space-around; padding: 12px; border-radius: 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); z-index: 1000; }
+    .nav-item { text-align: center; color: #bbb; font-size: 8px; font-weight: 600; text-decoration: none; }
+    .nav-item.active { color: #f45a32; }
+    .nav-item i { font-size: 18px; display: block; margin-bottom: 3px; }
+    #visitStatusMsg, #quizStatus { margin: 12px 0; font-weight: 600; font-size: 11px; min-height: 16px; color: #333; }
+    #questionBox { font-size: 26px; font-weight: 800; background: #fdf1e1; padding: 16px; border-radius: 16px; margin-bottom: 16px; letter-spacing: 1.5px; border: 1px solid #f45a32; }
+    
+    .input-wrapper { position: relative; margin-bottom: 14px; width: 100%; text-align: left; }
+    .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: #888; transition: 0.3s; }
+    .quiz-input { width: 100%; padding: 12px 14px 12px 42px; border-radius: 14px; border: 2px solid #e2e2e2; background: #fafafa; font-size: 12.5px; font-weight: 600; color: #222; outline: none; transition: 0.3s; }
+    .quiz-input:focus { background: #fff; border-color: #f45a32; box-shadow: 0 4px 12px rgba(244, 90, 50, 0.1); }
+    .quiz-input:focus + i { color: #f45a32; }
+    
+    .theme-youtube .quiz-input:focus { border-color: #ff0000; box-shadow: 0 4px 12px rgba(255, 0, 0, 0.1); }
+    .theme-youtube .quiz-input:focus + i { color: #ff0000; }
+    .theme-instagram .quiz-input:focus { border-color: #e1306c; box-shadow: 0 4px 12px rgba(225, 48, 108, 0.1); }
+    .theme-instagram .quiz-input:focus + i { color: #e1306c; }
+    .theme-facebook .quiz-input:focus { border-color: #1877f2; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.1); }
+    .theme-facebook .quiz-input:focus + i { color: #1877f2; }
+    .theme-telegram .quiz-input:focus { border-color: #0088cc; box-shadow: 0 4px 12px rgba(0, 136, 204, 0.1); }
+    .theme-telegram .quiz-input:focus + i { color: #0088cc; }
+    .theme-web .quiz-input:focus { border-color: #2ecc71; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.1); }
+    .theme-web .quiz-input:focus + i { color: #2ecc71; }
+    .theme-playstore .quiz-input:focus { border-color: #3ddc84; box-shadow: 0 4px 12px rgba(61, 220, 132, 0.1); }
+    .theme-playstore .quiz-input:focus + i { color: #3ddc84; }
+
+    .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; justify-items: center; align-items: start; }
+    .service-card { background: #fdf1e1; border: 1px solid #f45a32; border-radius: 10px; padding: 8px; width: 80px; height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; font-size: 7.5px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+    .service-card.active { background: #f45a32; color: white; }
+    .order-item { background: #fdf1e1; padding: 8px; border-radius: 8px; margin-top: 8px; text-align: left; font-size: 10.5px; border: 1px solid #f45a32;}
+    .order-item-notif { background: #fff5f2; padding: 10px; border-radius: 12px; margin-bottom: 8px; text-align: left; font-size: 11px; border: 1px solid rgba(244,90,50,0.2); }
+    .order-btn { padding: 4px 8px; font-size: 8px; margin-top: 4px; border-radius: 4px; border: none; cursor: pointer; }
+    .copy-container { display: flex; gap: 4px; margin-bottom: 8px; }
+    .copy-btn { background: #f45a32; color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<audio id="coinSound" src="magiccoins.mp3" preload="auto"></audio>
+<div class="bg-gradient"></div>
+
+<div class="modal-overlay" id="notificationModal">
+    <div class="modal-card" style="max-width: 320px;">
+        <i class="fas fa-times close-modal" onclick="closeNotificationModal()"></i>
+        <div style="font-size: 32px; margin-bottom: 8px;">🔔</div>
+        <h3 style="font-size:18px; font-weight:800; margin-bottom:15px;">Notifications</h3>
+        <div id="notificationList" style="max-height: 50vh; overflow-y: auto; padding: 2px;">
+            <p style="color:#999; font-size:12px; padding:10px;">No new messages or approvals.</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="levelUpModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeLevelUpModal()"></i>
+        <h3 style="font-size:20px; font-weight:800; margin-bottom:15px;">Level Up Guide</h3>
+        <div style="text-align:left; font-size:14px; color:#333;">
+            <p>Level badhane ke liye ye steps follow karein:</p>
+            <p style="margin:10px 0;">• <b>Bronze:</b> Starting level.</p>
+            <p style="margin:10px 0;">• <b>Silver:</b> 100+ lifetime earnings.</p>
+            <p style="margin:10px 0;">• <b>Gold:</b> 1000+ lifetime earnings.</p>
+            <p style="margin:10px 0;">• <b>Diamond:</b> 10,000+ lifetime earnings.</p>
+            <p style="margin-top:15px;">Zyada tasks complete karein aur lifetime earnings badhayein!</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="myOrdersModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeMyOrdersModal()"></i>
+        <h3 style="font-size:20px; font-weight:800; margin-bottom:15px;">My Orders</h3>
+        <div id="ordersList">Fetching your orders...</div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="buyModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeBuyModal()"></i>
+        <div id="selectionView">
+            <h3 style="font-size:20px; font-weight:800; margin-bottom:15px;">Boost Profile</h3>
+            
+            <div id="shortlinkSection" style="display:none;">
+                <label style="font-size:12px; font-weight:700; display:block; margin-bottom:5px; text-align:left;">1. Sabse pehle ye link copy karein:</label>
+                <div class="copy-container">
+                    <input type="text" id="generatedShortLink" class="quiz-input" style="padding: 12px 14px 12px 14px; margin-bottom: 0; background: #fdf1e1; flex: 1;" readonly>
+                    <button class="copy-btn" onclick="copyLink()">Copy</button>
+                </div>
+                <div style="font-size:12px; color:#555; text-align:left; background:#fff5f2; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid #f45a32;">
+                    <b>Instructions:</b><br>
+                    • Sabse pehle ye link copy karein.<br>
+                    • Apne URL shortener me jakar is link ko short karein.<br>
+                    • Short ki gayi link ko niche 'Enter Link/URL' box me dalein.<br>
+                    • Aapki shortlink approve hote hi visit aana shuru ho jayenge.<br>
+                    • Apne URL shortener ke hisab se (1, 2, ya 3-4 page) sahi button select karke Buy Now karein.
+                </div>
+            </div>
+            
+            <div class="service-grid" id="serviceGrid"></div>
+            <input type="hidden" id="selectedService">
+            <input type="hidden" id="selectedPrice">
+            
+            <div id="dynamicInputContainer" class="theme-web">
+                <div class="input-wrapper">
+                    <input type="text" id="targetUrl" class="quiz-input" placeholder="Enter Target Link / URL">
+                    <i class="fas fa-link" id="inputUrlIcon"></i>
+                </div>
+           
+                <div id="socialExtraFields" style="display:none;">
+                    <div class="input-wrapper">
+                        <input type="text" id="socialMediaId" class="quiz-input" placeholder="Username / Channel @Handle">
+                        <i class="fas fa-at"></i>
+                    </div>
+                </div>   
+
+                <div id="webhitsExtraFields" style="display:none;">
+                    <div id="webhitsSecretTextWrapper">
+                        <div class="input-wrapper">
+                            <input type="text" id="webhitsSecretText" class="quiz-input" placeholder="Verification Code / Secret Text">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div style="background:#fff5f2; border:1px solid #f45a32; padding:10px; border-radius:12px; margin-top:4px; font-size:11px; color:#555; text-align:left;">
+                            • यहाँ अपनी वेबसाइट के अंदर का वो टेक्स्ट या कोड डालें जिसे यूज़र स्क्रीनशॉट में ढूंढेगा।
+                        </div>
+                    </div>
+                </div>
+            </div>   
+            
+            <div id="perUnitInfo" style="margin-bottom:10px; font-weight:700; color:#f45a32; font-size:14px;">Select a service</div>
+            <button class="task-btn" style="background:#f45a32; padding:15px; font-size:14px; margin-top: 10px;" onclick="initiateBuy()">Buy Now</button>
+        </div>
+        
+        <div id="previewView" style="display:none;">
+            <h3 style="font-size:20px; font-weight:800; margin-bottom:15px;">Preview Link</h3>
+            <div style="background:#fdf1e1; padding:20px; border-radius:15px; border:1px solid #f45a32; margin-bottom:15px;">
+                <p style="font-size:14px; font-weight:600;">Link Verify Karein:</p>
+                <button class="task-btn" style="background:#2575fc; margin-top:10px; padding:12px;" onclick="window.open(document.getElementById('targetUrl').value, '_blank')">Click to Check Link</button>
+            </div>
+            <div id="confirmCost" style="margin:10px 0; font-weight:700; font-size:16px;"></div>
+            <button class="task-btn" style="background:#2ecc71; padding:15px; font-size:14px; margin-bottom:10px;" onclick="confirmBuyOrder()">Confirm Order</button>
+            <button class="task-btn" style="background:#ddd; color:#333; padding:10px; font-size:12px;" onclick="backToEdit()">Back to Edit</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="installModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeInstallModal()"></i>
+        <div style="font-size: 40px; margin-bottom: 10px;">📲</div>
+        <h3 style="font-size:22px; font-weight:800; margin-bottom:20px;">Install & Earn</h3>
+        <div id="installListContainer">
+            <script>
+                for(let i=1; i<=10; i++){
+                    document.write(`<div class="install-item"><div style="display:flex; align-items:center;"><img src="https://cdn-icons-png.flaticon.com/512/226/226770.png" class="android-logo-img"><div><p style="font-size:14px; font-weight:700;">Offer #${i}</p><p style="font-size:12px; color:#2ecc71; margin-top:3px;">🪙 <span id="ins_coin_${i}">Loading...</span></p></div></div><button class="install-btn-action" onclick="handleInstall(${i})">Install</button></div>`);
+                }
+            </script>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="quizModal" style="align-items: flex-start; padding-top: 8vh;">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeQuiz()"></i>
+        <div style="font-size: 45px; margin-bottom: 10px;">🧠</div>
+        <h3 style="font-size:22px; font-weight:800;">Math Quiz</h3>
+        <p id="quizLimitText" style="font-size:12px; color:#f45a32; margin-bottom:15px;">Daily Limit: 20/20 Left</p>
+        <div id="questionBox">0 + 0 = ?</div>
+        <div class="input-wrapper" style="text-align:center;">
+            <input type="number" id="quizAnswer" class="quiz-input" placeholder="Jawab likhein" style="padding-left:14px;">
+        </div>
+        <button class="task-btn" style="background:#2ecc71; padding:15px; font-size:16px;" onclick="checkQuizAnswer()">Submit Answer</button>
+        <div id="quizStatus"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="extraRewardModal">
+    <div class="modal-card" style="border: 2px solid #ffd700;">
+        <i class="fas fa-times close-modal" onclick="closeExtraModal()"></i>
+        <div style="font-size: 55px; margin-bottom: 10px;">🎁</div>
+        <h2 style="color: #f45a32;">Special Bonus!</h2>
+        <p style="margin: 15px 0; color:#333;">Aapne 3 quiz poore kiye! Niche button par click karein aur payein <b style="color:#f45a32;">20 Extra Coins</b> bonus!</p>
+        <button class="my-wallet-btn" style="width: 100%; height: 55px; border: 2px solid #f45a32;" onclick="claimExtraBonus()">Claim 20 Coins Now</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="visitModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeVisitModal()"></i>
+        <div style="font-size: 45px; margin-bottom: 10px;">🌐</div>
+        <h3 style="font-size:22px; font-weight:800;">Visit & Earn</h3>
+        <p id="visitLimitText" style="font-size:12px; color:#f45a32; margin-bottom:15px;">Daily Limit: 50/50 Left</p>
+        <div id="visitStatusMsg" style="color:#333; margin-bottom:15px;">Pehle Website visit karein aur code dhoondhein.</div>
+        
+        <div id="codeArea" style="display:none; margin-bottom: 15px;">
+            <p style="font-size: 12px; color: #f45a32; font-weight: 600;">Website par mila code niche bhariye:</p>
+            <div class="input-wrapper">
+                <input type="text" id="visitCodeInput" class="quiz-input" placeholder="Enter Code Here" style="font-size: 14px; border: 2px solid #f45a32; margin-top: 5px;">
+                <i class="fas fa-qrcode" style="margin-top:2px;"></i>
+            </div>
+        </div>
+
+        <button class="task-btn" id="visitStartBtn" style="background:#f45a32;" onclick="startExternalVisit()">Start Visit</button>
+        <button class="task-btn" id="visitConfirmBtn" style="display:none; background:#2ecc71; margin-top:10px;" onclick="verifyVisit()">Verify & Claim Reward</button>
+        
+        <div class="progress-box" id="visitPBox"><div class="progress-fill" id="visitPFill"></div></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="taskModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeTaskModal()"></i>
+        <img id="mLogo" src="" style="width:64px; margin-bottom:12px;">
+        <h3 id="mTitle" style="font-size:18px; font-weight:800;">Tasks</h3>
+        <div id="taskProfileBox" style="display:none; align-items:center; gap:12px; background:#f8f9ff; padding:12px; border-radius:14px; margin-top:12px; border:1px solid #ececff;">
+            <img id="taskMiniImage" src="" style="width:55px; height:55px; border-radius:50%; object-fit:cover; border:2px solid #ff6b35;">
+            <div style="flex:1; text-align:left;">
+                <div id="taskSocialId" style="font-size:15px; font-weight:700; color:#222;"></div>
+                <div style="font-size:12px; color:#777; margin-top:3px;">Verified Promotion</div>
+            </div>
+        </div>
+        <div class="task-modal-grid" style="display: grid; gap: 12px; margin-top: 16px;"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="ytFinalModal">
+    <div class="modal-card">
+        <i class="fas fa-times close-modal" onclick="closeYtFinal()"></i>
+        <img src="" id="finalIcon" style="width:72px; margin-bottom:12px;">
+        <h3 style="font-size:16px; font-weight:800;" id="finalTitle">Action</h3>
+        <p id="rewardDisplay" style="font-size:13px; font-weight:700; color:#f45a32; margin-bottom:8px;"></p>
+        
+        <div id="iframeSection" style="display:none; width:100%; height:400px; border:2px solid #f45a32; border-radius:12px; margin-top:10px; overflow:hidden;">
+            <iframe id="offerwallIframe" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+
+        <div id="aiMonitorBox" style="display: none; margin: 10px 0; padding: 10px; background: #222; border-radius: 14px; color: #fff; font-size: 10px; text-align: left;">
+            <p style="color: #ffd700; font-weight: 700; margin-bottom: 5px; text-align: center;">🤖 Live AI Scanner Monitor</p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;" id="monitorCanvases"></div>
+        </div>
+
+        <div id="statusMsg" style="color:#333;">Pehle Action poora karein</div>
+
+        <div id="screenshotSection" style="display:none; margin: 12px 0; border: 2px dashed #f45a32; padding: 16px; border-radius: 20px; background: #fff5f2; text-align: center;">
+            <p style="font-size:11px; font-weight:700; margin-bottom:10px; color: #f45a32;"><i class="fas fa-camera-retro"></i> Step 2: Proof Upload Karein</p>
+            <label for="ssInput" style="background: white; border: 1px solid #f45a32; padding: 8px 12px; border-radius: 10px; cursor: pointer; display: block; margin-bottom: 8px;">
+                <span id="fileNameDisplay" style="font-size: 10px; color: #666;">Choose Screenshot...</span>
+                <input type="file" id="ssInput" accept="image/*" style="display: none;" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name">
+            </label>
+            <button class="task-btn" id="uploadActionBtn" style="background: #3498db; padding: 10px; font-size: 10px;" onclick="verifyTask()"><i class="fas fa-cloud-upload-alt"></i> Verify & Submit Proof</button>
+        </div>
+
+        <div id="codeContainer" style="display:none; margin: 12px 0;">
+            <div class="input-wrapper">
+                <input type="text" id="uniqueCodeInput" class="quiz-input" placeholder="Enter Unique Code">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+        </div>
+        <button class="task-btn" id="ytSubBtn" style="padding:12px; background:#ff0000;" onclick="startYtTask()">Start Now</button>
+        <button class="task-btn" id="confirmBtn" style="display:none; padding:12px; background:#2ecc71; margin-top:12px;" onclick="verifyTask()">Confirm Now</button>
+        <div class="progress-box" id="pBox"><div class="progress-fill" id="pFill"></div></div>
+    </div>
+</div>
+
+<div class="header">
+    <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="openLevelUpModal()">
+        <img id="uImg" src="" class="profile-img">
+        <div><p id="uName" style="color:white; font-weight:700; font-size: 13px;">Loading...</p><div id="uLevelTag"></div></div>
+    </div>
+    <div class="notif-container">
+        <div class="notif-btn" onclick="openNotificationModal()"><i class="fas fa-bell"></i></div>
+        <div class="notif-badge" id="notifRedBadge">1</div>
+    </div>
+</div>
+
+<div class="sticky-wallet-container">
+    <div class="wallet-card">
+        <span style="font-size:10px; opacity:0.7;">Current Balance</span>
+        <div class="balance-amount">🪙 <span id="coinsDisplay">0</span></div>
+        <div class="money-rs-tag-home">
+            <i class="fas fa-wallet" style="color: #ffd700;"></i>
+            <span>≈ ₹<span id="rsValueDisplayHome">0.00</span></span>
+        </div>
+        <div class="my-wallet-btn" onclick="goTo('withdrawal mony.html')">My Wallet</div>
+    </div>
+</div>
+
+<div class="withdrawal-ticker-card" id="liveWithdrawalCard">
+    <div class="ticker-content" id="tickerText">
+        <i class="fas fa-bolt" style="color:#ffd700; animation: spin 2s linear infinite;"></i> Loading live withdrawals...
+    </div>
+</div>
+
+<div class="action-grid">
+    <div class="action-card" onclick="claimDailyBonus()">
+        <div class="icon-circle ic-daily"><i class="fas fa-calendar-check"></i></div>
+        <p id="dailyTxt">Daily Bonus</p>
+    </div>
+    <div class="action-card" id="quizCard" onclick="openQuiz()">
+        <div class="icon-circle ic-quiz"><i class="fas fa-brain"></i></div>
+        <p id="quizTxt">Math Quiz</p>
+    </div>
+    <div class="action-card" id="visitCard" onclick="openVisitModal()">
+        <div class="icon-circle ic-visit"><i class="fas fa-mouse-pointer"></i></div>
+        <p id="visitTxt">Visit & Earn</p>
+    </div>
+</div>
+
+<div class="section-title">More Tasks</div>
+
+<div class="grid-container">
+    <div class="task-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3670/3670147.png" class="social-logo" style="margin-bottom: 6px;">
+        <p style="font-weight:700; font-size: 8px;">YouTube</p>
+        <button class="task-btn" onclick="openTaskModal('YouTube', 'https://cdn-icons-png.flaticon.com/512/3670/3670147.png')">Subscribe</button>
+    </div>
+
+    <div class="task-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/3955/3955024.png" class="social-logo" style="margin-bottom: 6px;">
+        <p style="font-weight:700; font-size: 8px;">Instagram</p>
+        <button class="task-btn" onclick="openTaskModal('Instagram', 'https://cdn-icons-png.flaticon.com/512/3955/3955024.png')">Follow</button>
+    </div>
+
+    <div class="task-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/5968/5968764.png" class="social-logo" style="margin-bottom: 6px;">
+        <p style="font-weight:700; font-size: 8px;">Facebook</p>
+        <button class="task-btn" onclick="openTaskModal('Facebook', 'https://cdn-icons-png.flaticon.com/512/5968/5968764.png')">Follow</button>
+    </div>
+    
+    <div class="task-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" class="social-logo" style="margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+        <p style="font-weight:700; font-size: 8px;">Telegram</p>
+        <button class="task-btn" onclick="openTaskModal('Telegram', 'https://cdn-icons-png.flaticon.com/512/2111/2111646.png')">Join Now</button>
+    </div>
+
+    <div class="task-card">
+        <div class="social-logo" style="background: #fff5f2; border: 1px solid #f45a32; border-radius: 50%;"><i class="fas fa-globe" style="font-size: 16px; color: #f45a32;"></i></div>
+        <p style="font-weight:700; font-size: 8px; margin-bottom: 4px;">Web Hits</p>
+        <button class="task-btn" onclick="openTaskModal('WebHits', 'https://cdn-icons-png.flaticon.com/512/1006/1006771.png')">Visit Now</button>
+    </div>
+
+    <div class="task-card">
+        <div class="social-logo" style="background: #fff5f2; border: 1px solid #f45a32; border-radius: 50%;"><i class="fas fa-link" style="font-size: 16px; color: #f45a32;"></i></div>
+        <p style="font-weight:700; font-size: 8px; margin-bottom: 4px;">Shortlink</p>
+        <button class="task-btn" onclick="openTaskModal('Shortlink', 'https://cdn-icons-png.flaticon.com/512/819/819814.png')">Visit Now</button>
+    </div>
+
+    <div class="task-card">
+        <div class="social-logo" style="background: #f9f4ff; border: 1px solid #9b59b6; border-radius: 50%;"><i class="fas fa-gift" style="font-size: 16px; color: #9b59b6;"></i></div>
+        <p style="font-weight:700; font-size: 8px; margin-bottom: 4px;">Offerwalls</p>
+        <button class="task-btn" onclick="openTaskModal('Offerwalls', 'https://cdn-icons-png.flaticon.com/512/3268/3268582.png')" style="background: #9b59b6;">Earn More</button>
+    </div>
+
+    <div class="task-card">
+        <img src="https://cdn-icons-png.flaticon.com/512/888/888857.png" class="social-logo" style="margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+        <p style="font-weight:700; font-size: 8px;">App Install</p>
+        <button class="task-btn" onclick="openTaskModal('AppInstall', 'https://cdn-icons-png.flaticon.com/512/888/888857.png')" style="background: #3ddc84;">Install Now</button>
+    </div>
+</div>
+
+<div class="section-title">Promote Your Profile & Store 🚀</div>
+<div class="promo-grid" style="padding-bottom: 112px;">
+    <div class="promo-service-card" onclick="openBuyModal('YouTube')"><i class="fab fa-youtube" style="color: #ff0000;"></i><p>YouTube Promo</p></div>
+    <div class="promo-service-card" onclick="openBuyModal('Instagram')"><i class="fab fa-instagram" style="color: #e1306c;"></i><p>Insta Growth</p></div>
+    <div class="promo-service-card" onclick="openBuyModal('Facebook')"><i class="fab fa-facebook" style="color: #4267B2;"></i><p>FB Followers</p></div>
+    <div class="promo-service-card" onclick="openBuyModal('Telegram')"><i class="fab fa-telegram" style="color: #0088cc;"></i><p>Tele Joiners</p></div>
+    <div class="promo-service-card" onclick="openBuyModal('WebHits')"><i class="fas fa-globe" style="color: #333;"></i><p>Website Hits</p></div>
+    <div class="promo-service-card" onclick="giveInstruction('अपनी शॉर्टलिंक प्रमोट करने के लिए लिंक को कॉपी करें, उसे शॉर्ट करें और फिर यहाँ पेस्ट करके ऑर्डर लगायें।'); openBuyModal('Shortlink')"><i class="fas fa-link" style="color: #333;"></i><p>Promote Shortlink</p></div>
+    
+    <div class="promo-service-card" onclick="openBuyModal('AppInstall')" style="border-color: #3ddc84;"><i class="fab fa-google-play" style="color: #3ddc84;"></i><p>Promote App</p></div>
+    
+    <div class="promo-service-card" onclick="openCoinStore()" style="background: linear-gradient(135deg, #fff9e6 0%, #fff0c2 100%); border: 2px solid #ffd700; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.35); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -10px; right: -10px; background: #f45a32; color: #fff; font-size: 7px; font-weight: 700; padding: 12px 10px 3px; transform: rotate(45deg); text-transform: uppercase;">🔥 Pack</div>
+        <i class="fas fa-coins" style="color: #ffd700; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.15);"></i>
+        <p style="color: #997300; font-weight: 800; font-family: 'Montserrat', sans-serif; margin-top: 4px;">BUY COINS ⚡</p>
+    </div>
+
+    <div class="promo-service-card" onclick="openMyOrdersModal()" style="border-style: dashed;"><i class="fas fa-list-ul" style="color: #6a11cb;"></i><p>My Orders</p></div>
+</div>
+
+<div class="modal-overlay" id="coinStoreModal">
+    <div class="modal-card" style="border: 2px solid #ffd700; background: #ffffff; max-width: 330px; border-radius: 24px; padding: 20px 14px;">
+        <i class="fas fa-times close-modal" onclick="closeCoinStore()" style="color: #666; font-size: 16px; top: 16px; right: 16px;"></i>
+        
+        <div style="background: linear-gradient(135deg, #fff5f2, #fffcf9); border-radius: 16px; padding: 12px; margin-bottom: 15px; border: 1px solid rgba(244,90,50,0.1);">
+            <div style="font-size: 28px; margin-bottom: 2px;">⚡</div>
+            <h3 style="font-size: 18px; font-weight: 800; color: #222; font-family: 'Montserrat', sans-serif;">Coin Store Gateway</h3>
+            <p style="font-size: 10px; color: #777;">Instant automated deposit via any UPI App</p>
+        </div>
+
+        <div id="storePlansView">
+            <div style="background: #fffcf4; border: 1px solid #ffd700; padding: 10px 14px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(255,215,0,0.05);">
+                <div style="text-align: left;">
+                    <p style="font-size: 13px; font-weight: 700; color: #333;">🪙 1,100 Coins</p>
+                    <p style="font-size: 9px; color: #2ecc71; font-weight: 600;"><i class="fas fa-bolt"></i> Extra +10% Bonus</p>
+                </div>
+                <button class="install-btn-action" style="background: linear-gradient(90deg, #f45a32, #ff9545); border: none; padding: 8px 14px; font-size: 11px; border-radius: 8px; color: white;" onclick="checkoutPay(10, 1100)">₹10 Only</button>
+            </div>
+
+            <div style="background: #fffcf4; border: 1px solid #ffd700; padding: 10px 14px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(255,215,0,0.05);">
+                <div style="text-align: left;">
+                    <p style="font-size: 13px; font-weight: 700; color: #333;">🪙 2,200 Coins</p>
+                    <p style="font-size: 9px; color: #2ecc71; font-weight: 600;"><i class="fas fa-fire"></i> Best Popular Choice</p>
+                </div>
+                <button class="install-btn-action" style="background: linear-gradient(90deg, #f45a32, #ff9545); border: none; padding: 8px 14px; font-size: 11px; border-radius: 8px; color: white;" onclick="checkoutPay(20, 2200)">₹20 Only</button>
+            </div>
+        </div>
+
+        <div id="storePaymentScreen" style="display: none;">
+            <p style="font-size: 11px; font-weight: 700; color: #f45a32; margin-bottom: 10px;">🔴 Do Not Close! Payment is Live Verifying...</p>
+            <div style="background: #fdf1e1; padding: 12px; border-radius: 16px; border: 1px solid #f45a32; margin-bottom: 12px;">
+                <p style="font-size: 11px; color:#444;">Total Amount: <b style="font-size:14px; color:#f45a32;" id="payAmountLabel">₹0</b></p>
+                <p style="font-size: 11px; color:#444; margin-top:2px;">Coins Crediting: <b style="color:#2ecc71;" id="payCoinsLabel">0</b></p>
+            </div>
+            
+            <button class="task-btn" style="background: #0088cc; padding: 12px; font-size: 12px; font-weight: 700; display: block; margin-bottom: 10px;" id="intentUpiBtn"><i class="fas fa-mobile-alt"></i> Pay via UPI App (GPay/PhonePe)</button>
+            
+            <div style="margin: 10px 0; border-top: 1px dashed #ddd; padding-top: 10px;">
+                <p style="font-size: 9px; color: #777; margin-bottom: 5px; text-align: left; font-weight: 600;">Ya fir manually niche di gayi UPI ID par exact pay karein:</p>
+                <div style="display: flex; gap: 4px; margin-bottom: 10px;">
+                    <div class="input-wrapper" style="flex:1; margin-bottom:0;">
+                        <input type="text" id="merchantUpiString" class="quiz-input" style="font-size: 11px; background: #fafafa; padding-left:36px; text-align: left;" readonly>
+                        <i class="fas fa-wallet" style="font-size:12px; left:12px;"></i>
+                    </div>
+                    <button class="copy-btn" style="padding: 6px 10px; font-size: 10px;" onclick="copyMerchantUpi()">Copy</button>
+                </div>
+            </div>
+
+            <div style="background: #fff5f2; border: 1px dashed #f45a32; border-radius: 12px; padding: 10px; margin-bottom: 12px;">
+                <p style="font-size: 9px; color: #333; font-weight: 600; text-align: left;">Payment karne ke baad wahan se 12-digit ka Ref/UTR Code copy karke niche enter karein:</p>
+                <div class="input-wrapper" style="margin-top:6px; margin-bottom:8px;">
+                    <input type="number" id="utrInputField" class="quiz-input" style="font-size: 14px; border: 2px solid #f45a32;" placeholder="Enter 12-Digit Ref/UTR Number">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <button class="task-btn" style="background: #2ecc71; padding: 10px; font-size: 11px; font-weight: 700;" onclick="submitUtrVerification()">Verify & Claim Coins</button>
+            </div>
+        </div>
+
+        <div style="font-size: 9px; color: #999; text-align: center; line-height: 14px; margin-top: 10px;">
+            <i class="fas fa-lock" style="color: #2ecc71;"></i> Secured via Real-Time Encryption Engine
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="Home.html" class="nav-item active" id="navHome"><i class="fas fa-home"></i>Home</a>
+    <a href="Leaderboard.html" class="nav-item" id="navLeader"><i class="fas fa-poll-h"></i>Leader</a>
+    <a href="refer frend.html" class="nav-item" id="navRefer"><i class="fas fa-user-friends"></i>Refer</a>
+    <a href="withdrawal mony.html" class="nav-item" id="navProfile"><i class="fas fa-user-circle"></i>Profile</a>
+</div>
+
+<script>
+let currentPlat = "";
+let currentType = "";
+let currentTaskId = "";
+let currentTaskLink = "";
+let currentTaskVal = 0;
+let isProcessing = false;
+let startTime, running, visitStartTime, visitRunning, returnTime;
+let quizAnswer, quizCounter = 0;
+
+let withdrawalListGlobal = [];
+let activeTickerIndex = 0;
+
+const YOUR_UPI_ID = "rjtech@ybl"; 
+const MERCHANT_NAME = "RJTech Private Limited";
+
+function openLevelUpModal() { document.getElementById('levelUpModal').style.display = "flex"; }
+function closeLevelUpModal() { document.getElementById('levelUpModal').style.display = "none"; }
+function copyLink() {
+    const copyText = document.getElementById("generatedShortLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    alert("Link Copied!");
+}
+function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+const taskMap = {
+    "YT Subscribe": {c: "YouTube", t: "Subscribe"}, "YT Like": {c: "YouTube", t: "Like"}, "Watchtime": {c: "YouTube", t: "Watch"}, "Short Video": {c: "YouTube", t: "Watch"},
+    "Insta Follow": {c: "Instagram", t: "Subscribe"}, "Insta Like": {c: "Instagram", t: "Like"}, "Insta View": {c: "Instagram", t: "Watch"},
+    "FB Follow": {c: "Facebook", t: "Subscribe"}, "FB Like": {c: "Facebook", t: "Like"}, "Watch Video": {c: "Facebook", t: "Watch"},
+    "Tele Join": {c: "Telegram", t: "Subscribe"}, 
+    "Web Hits": {c: "WebHits", t: "Visit"},
+    "Direct Link": {c: "WebHits", t: "Direct"},
+    "1 page URL shortener": {c: "Shortlink", t: "1 page URL shortener"},
+    "2 page URL shortener": {c: "Shortlink", t: "2 page URL shortener"},
+    "3 & 4 page URL shortener": {c: "Shortlink", t: "3 & 4 page URL shortener"},
+    "PlayStore Install": {c: "AppInstall", t: "Install"},
+    "Install & Review": {c: "AppInstall", t: "Review"}
+};
+function playCoinSound() {
+    const audio = document.getElementById("coinSound");
+    if(audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log("Play error:", e));
+    }
+}
+
+function manageTask(action, serviceName, taskId, url, price, ownerId, socialId = "", webhitsText = "") {
+    const map = taskMap[serviceName]; if(!map) return;
+    const ref = db.ref("tasks/"+map.c+"/"+map.t);
+    if(action === 'add') { 
+        const newTask = ref.push({ 
+            link: url, 
+            value: (price - 2), 
+            owner: ownerId, 
+            socialId: socialId || "", 
+            webhitsText: webhitsText || "" 
+        }); 
+        return newTask.key; 
+    }
+    else if(action === 'remove' && taskId) { ref.child(taskId).remove(); }
+}
+
+function runAutoCleanup(currentCoins) {
+    db.ref("orders/" + userData.uid).once("value", (snap) => { 
+        snap.forEach((orderSnap) => {
+            let o = orderSnap.val();
+            if(o.status === 'active' && currentCoins < o.cost) {
+                if(o.taskId) { manageTask('remove', o.service, o.taskId, o.url, o.cost, userData.uid, o.socialId || ""); }
+                orderSnap.ref.update({ status: 'paused', taskId: null });
+            }
+        });
+    });
+}
+
+function closeMyOrdersModal() { document.getElementById('myOrdersModal').style.display = "none"; }
+
+const allServices = {
+    'YouTube': [{n: 'YT Subscribe', p: 10, i: 'fab fa-youtube'}, {n: 'YT Like', p: 3, i: 'fas fa-thumbs-up'}, {n: 'Watchtime', p: 5, i: 'fas fa-play'}, {n: 'Short Video', p: 5, i: 'fas fa-bolt'}],
+    'Instagram': [{n: 'Insta Follow', p: 10, i: 'fab fa-instagram'}, {n: 'Insta Like', p: 5, i: 'fas fa-heart'}, {n: 'Insta View', p: 5, i: 'fas fa-eye'}],
+    'Facebook': [{n: 'FB Follow', p: 10, i: 'fab fa-facebook'}, {n: 'FB Like', p: 5, i: 'fas fa-thumbs-up'}, {n: 'Watch Video', p: 5, i: 'fas fa-play-circle'}],
+    'Telegram': [{n: 'Tele Join', p: 10, i: 'fab fa-telegram'}],
+    'WebHits': [{n: 'Web Hits', p: 5, i: 'fas fa-globe'}, {n: 'Direct Link', p: 3, i: 'fas fa-bolt'}],
+    'Shortlink': [{n: '1 page URL shortener', p: 15, i: 'fas fa-link'}, {n: '2 page URL shortener', p: 20, i: 'fas fa-link'}, {n: '3 & 4 page URL shortener', p: 25, i: 'fas fa-link'}],
+    'AppInstall': [{n: 'PlayStore Install', p: 15, i: 'fab fa-google-play'}, {n: 'Install & Review', p: 25, i: 'fas fa-star'}]
+};
+function renderGrid(cat) {
+    const grid = document.getElementById('serviceGrid'); grid.innerHTML = ""; const isShortlink = (cat === 'Shortlink'); const categories = (cat === 'All') ? Object.keys(allServices) : [cat];
+    categories.forEach(category => {
+        if (allServices[category]) {
+            allServices[category].forEach(s => { 
+                let coinDisplay = isShortlink ? "" : `<span>${s.p} Coins</span>`;
+                grid.innerHTML += `<div class="service-card" onclick="selectService(this, '${s.n}', ${s.p})"><i class="${s.i}" style="font-size:20px; margin-bottom:5px;"></i>${coinDisplay}<span style="font-size: 8px;">${s.n}</span></div>`; 
+            });
+        }
+    });
+}
+function selectService(el, name, price) {
+    document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active')); el.classList.add('active');
+    document.getElementById('selectedService').value = name; document.getElementById('selectedPrice').value = price;
+    document.getElementById('perUnitInfo').innerHTML = name + " = " + price + " Coins <br> <span style='font-size:11px; color:#555;'>Advertiser Note: " + price + " Coins per visit deduct honge.</span>";
+}
+
+function openBuyModal(cat) {
+    document.getElementById('targetUrl').value = ""; document.getElementById('selectedService').value = ""; document.getElementById('selectedPrice').value = ""; document.getElementById('perUnitInfo').innerText = "Select a service";
+    const section = document.getElementById('shortlinkSection'); const socialFields = document.getElementById('socialExtraFields');
+    const webhitsFields = document.getElementById('webhitsExtraFields');
+    
+    const inputWrapper = document.getElementById('dynamicInputContainer');
+    const urlIcon = document.getElementById('inputUrlIcon');
+    const urlInput = document.getElementById('targetUrl');
+    
+    inputWrapper.className = "";
+
+    if (cat === 'Shortlink') { 
+        section.style.display = 'block'; 
+        socialFields.style.display = 'none'; 
+        webhitsFields.style.display = 'none';
+        inputWrapper.classList.add('theme-web');
+        urlIcon.className = "fas fa-link";
+        urlInput.placeholder = "Paste your Shortened URL / Link here";
+        document.getElementById('generatedShortLink').value = window.location.protocol + "//" + window.location.host + "/URL shortener.html?uid=" + userData.uid; 
+    } 
+    else if (cat === 'WebHits') {
+        section.style.display = 'none'; 
+        socialFields.style.display = 'none'; 
+        webhitsFields.style.display = 'block'; 
+        inputWrapper.classList.add('theme-web');
+        urlIcon.className = "fas fa-globe";
+        urlInput.placeholder = "Enter Website Landing Page Link/URL";
+        document.getElementById('webhitsSecretTextWrapper').style.display = "block";
+    }
+    else if (cat === 'AppInstall') {
+        section.style.display = 'none'; 
+        socialFields.style.display = 'block'; 
+        webhitsFields.style.display = 'none';
+        inputWrapper.classList.add('theme-playstore');
+        urlIcon.className = "fab fa-google-play";
+        urlInput.placeholder = "Enter Google Play Store App Link";
+        document.getElementById('socialMediaId').placeholder = "Enter Exact App Name (For AI Verification)";
+    }
+    else { 
+        section.style.display = 'none'; 
+        socialFields.style.display = 'block'; 
+        webhitsFields.style.display = 'none';
+        
+        if (cat === 'YouTube') {
+            inputWrapper.classList.add('theme-youtube');
+            urlIcon.className = "fab fa-youtube";
+            urlInput.placeholder = "Enter YouTube Video or Channel Link";
+        } else if (cat === 'Instagram') {
+            inputWrapper.classList.add('theme-instagram');
+            urlIcon.className = "fab fa-instagram";
+            urlInput.placeholder = "Enter Instagram Post or Profile Link";
+        } else if (cat === 'Facebook') {
+            inputWrapper.classList.add('theme-facebook');
+            urlIcon.className = "fab fa-facebook";
+            urlInput.placeholder = "Enter Facebook Page or Video Link";
+        } else if (cat === 'Telegram') {
+            inputWrapper.classList.add('theme-telegram');
+            urlIcon.className = "fab fa-telegram";
+            urlInput.placeholder = "Enter Telegram Group / Channel Invite Link";
+        }
+    }
+    document.getElementById('buyModal').style.display = "flex"; renderGrid(cat || 'All');
+
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', function() {
+            let activeService = document.getElementById('selectedService').value;
+            if(activeService === "Direct Link") {
+                document.getElementById('webhitsSecretTextWrapper').style.display = "none";
+            } else if (cat === 'WebHits') {
+                document.getElementById('webhitsSecretTextWrapper').style.display = "block";
+            }
+        });
+    });
+}
+
+function isValidUrl(service, url) {
+    const u = url.toLowerCase(); const s = service.toLowerCase();
+    if (s.includes("yt") || s.includes("watchtime") || s.includes("short video")) return (u.includes("youtube.com") || u.includes("youtu.be"));
+    if (s.includes("insta")) return u.includes("instagram.com");
+    if (s.includes("fb") || s.includes("watch video")) return (u.includes("facebook.com") || u.includes("fb.me") || u.includes("fb.watch"));
+    if (s.includes("tele")) return (u.includes("t.me") || u.includes("telegram.me"));
+    if (s === "web hits" || s === "direct link" || s.includes("shortlink") || s.includes("shortener")) return true;
+    if (s.includes("install") || s.includes("review")) return u.includes("play.google.com");
+    return false;
+}
+
+function initiateBuy() {
+    const service = document.getElementById('selectedService').value; const price = document.getElementById('selectedPrice').value; const url = document.getElementById('targetUrl').value;
+    if(!service) return alert("Select service!"); if(!url) return alert("Enter URL!");
+    if (!isValidUrl(service, url)) return alert("❌ Error: Aapne " + service + " select kiya hai, toh sahi link daalein!");
+    
+    document.getElementById('selectionView').style.display = "none"; 
+    document.getElementById('previewView').style.display = "block"; 
+    document.getElementById('confirmCost').innerText = service + ": " + price + " Coins (per visit)";
+}
+function backToEdit() { 
+    document.getElementById('selectionView').style.display = "block"; 
+    document.getElementById('previewView').style.display = "none"; 
+}
+
+async function confirmBuyOrder() {
+    const service = document.getElementById('selectedService').value; 
+    const price = parseInt(document.getElementById('selectedPrice').value); 
+    const url = document.getElementById('targetUrl').value.trim();
+    const socialId = document.getElementById('socialMediaId') ? document.getElementById('socialMediaId').value.trim() : ""; 
+    const webhitsText = document.getElementById('webhitsSecretText') ? document.getElementById('webhitsSecretText').value.trim() : "";
+
+    if (!url) return alert("URL enter karein!"); 
+    if (!service) return alert("Service select karein!");
+    if (service === "Web Hits" && !webhitsText) { return alert("❌ वेबसाइट वेरिफिकेशन कोड या टेक्स्ट डालना अनिवार्य है!"); }
+
+    showLoading();
+    try {
+        const ordersSnap = await db.ref("orders").once("value"); 
+        let isDuplicate = false;
+        if (ordersSnap.exists()) { 
+            ordersSnap.forEach((userOrders) => { 
+                userOrders.forEach((order) => { if (order.val().url === url) { isDuplicate = true; } }); 
+            }); 
+        }
+        if (isDuplicate) { hideLoading(); alert("❌ Error: Yah link pehle se hi promoted hai! Kripya koi dusri link istemal karein."); return; }
+        
+        await db.ref("orders/" + userData.uid).push({ 
+            service: service, url: url, cost: price, completed_count: 0, status: 'pending', date: new Date().toLocaleDateString(), taskId: null, socialId: socialId, webhitsText: webhitsText, owner: userData.uid 
+        });
+        playCoinSound(); hideLoading(); alert("✅ Order Sent for Admin Approval! Ek baar Admin check karke ise approve kar dega tab aapka promotion live ho jayega."); closeBuyModal();
+    } catch (error) { hideLoading(); alert("❌ Error: Order process nahi ho saka. " + error.message); console.error(error); }
+}
+
+function deleteOrder(id) {
+    if(confirm("Dhyan de: Order delete karne par aapka promotion band ho jayega. Delete karein?")) {
+        showLoading(); db.ref("orders/" + userData.uid + "/" + id).once("value", (snap) => {
+            let o = snap.val(); if(!o) { hideLoading(); return; }
+            if(o.taskId) { const map = taskMap[o.service]; if(map) { db.ref("tasks/" + map.c + "/" + map.t + "/" + o.taskId).remove(); } }
+            snap.ref.remove().then(() => { hideLoading(); alert("🗑️ Order permanently delete kar diya gaya hai."); openMyOrdersModal(); }).catch((err) => { hideLoading(); alert("Error: " + err.message); });
+        });
+    }
+}
+function editOrder(id) {
+    let newUrl = prompt("Naya URL/Link enter karein:");
+    if (newUrl && newUrl.trim() !== "") {
+        showLoading(); db.ref("orders/" + userData.uid + "/" + id).update({ url: newUrl }).then(() => { hideLoading(); alert("✅ Link successfully update ho gayi!"); openMyOrdersModal(); }).catch((err) => { hideLoading(); alert("Error: " + err.message); });
+    }
+}
+
+function togglePauseOrder(id, status) {
+    showLoading(); db.ref("orders/" + userData.uid + "/" + id).once("value", (snap) => {
+        let o = snap.val(); if(!o) { hideLoading(); return; }
+        if (o.status === 'pending') { hideLoading(); alert("❌ Error: Yeh order abhi Pending hai. Approve hone ke baad hi pause/resume kar sakte hain."); return; }
+        
+        let newStatus = (status === 'paused') ? 'active' : 'paused';
+        if (newStatus === 'active') {
+            db.ref("users/" + userData.uid + "/coins").once("value", (coinSnap) => {
+                if (coinSnap.val() < o.cost) { hideLoading(); alert("❌ Low Balance! Resume karne ke liye coins chahiye."); return; }
+                const map = taskMap[o.service]; if(map) { const taskId = db.ref("tasks/" + map.c + "/" + map.t).push({ link: o.url, value: (o.cost - 2), owner: userData.uid, socialId: o.socialId || "", webhitsText: o.webhitsText || "" }).key; snap.ref.update({ status: newStatus, taskId: taskId }).then(() => { hideLoading(); openMyOrdersModal(); }); }
+            });
+        } else {
+            if (o.taskId) { const map = taskMap[o.service]; if(map) { db.ref("tasks/" + map.c + "/" + map.t + "/" + o.taskId).remove(); } }
+            snap.ref.update({ status: newStatus, taskId: null }).then(() => { hideLoading(); openMyOrdersModal(); });
+        }
+    });
+}
+
+function openMyOrdersModal() {
+    const container = document.getElementById('ordersList'); if(!container) return;
+    document.getElementById('myOrdersModal').style.display = "flex"; container.innerHTML = "<div style='padding:20px;'><i class='fas fa-spinner fa-spin'></i> Fetching orders...</div>"; showLoading(); 
+    db.ref("orders/" + userData.uid).once("value", (snap) => {
+        hideLoading(); let orders = snap.val(); if(!orders) { container.innerHTML = "<p style='padding:20px; color:#999; font-weight:700;'>Aapne abhi tak koi order nahi lagaya hai.</p>"; return; }
+        container.innerHTML = "";
+        for(let id in orders) {
+            let o = orders[id]; let status = o.status;
+            let statusColor = "#f39c12"; 
+            let statusText = status.toUpperCase();
+            if (status === 'active') statusColor = "#2ecc71"; 
+            if (status === 'pending') { statusColor = "#9b59b6"; statusText = "⚠️ PENDING APPROVAL"; } 
+
+            container.innerHTML += `
+                <div class="order-item" style="border-left: 5px solid ${statusColor}; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                    <p style="font-weight:700; color:#f45a32; font-size:14px;">${o.service} <span style="font-size:10px; color:${statusColor}; float:right;">${statusText}</span></p>
+                    <p style="font-size:11px; word-break:break-all; color:#555; margin:5px 0;">URL: ${o.url}</p>
+                    <p style="font-size:13px; color:#333;">✅ Views/Clicks: <b>${o.completed_count || 0}</b></p>
+                    <div style="margin-top:12px; display:flex; gap:8px;">
+                        <button class="order-btn" style="background:#3498db; color:white; flex:1; font-weight:700;" onclick="editOrder('${id}')">Edit</button>
+                        <button class="order-btn" style="background:${status === 'paused' ? '#2ecc71' : '#f39c12'}; color:white; flex:1; font-weight:700;" onclick="togglePauseOrder('${id}', '${status}')">${status === 'paused' ? 'Resume' : 'Pause'}</button>
+                        <button class="order-btn" style="background:#e74c3c; color:white; flex:1; font-weight:700;" onclick="deleteOrder('${id}')">Delete</button>
+                    </div>
+                </div>`;
+        }
+    });
+}
+
+function closeBuyModal() { document.getElementById('buyModal').style.display = "none"; document.getElementById('selectionView').style.display = "block"; document.getElementById('previewView').style.display = "none"; }
+
+function setupNotificationBadgeListener() {
+    db.ref("notifications").on("value", (adminSnap) => {
+        let count = adminSnap.numChildren();
+        db.ref("orders/" + userData.uid).once("value", (orderSnap) => {
+            if(orderSnap.exists()){
+                orderSnap.forEach(o => { if(o.val().status === 'active') count++; });
+            }
+            const badge = document.getElementById("notifRedBadge");
+            if(count > 0) {
+                badge.innerText = count > 9 ? "9+" : count;
+                badge.style.display = "flex";
+            } else {
+                badge.style.display = "none";
+            }
+        });
+    });
+}
+
+function openNotificationModal() {
+    if(!checkNet()) return;
+    document.getElementById("notifRedBadge").style.display = "none";
+    const notifList = document.getElementById("notificationList");
+    notifList.innerHTML = "<div style='padding:20px;'><i class='fas fa-spinner fa-spin'></i> Fetching messages...</div>";
+    document.getElementById("notificationModal").style.display = "flex";
+
+    let finalHtml = "";
+
+    db.ref("notifications").once("value", (adminSnap) => {
+        if(adminSnap.exists()){
+            adminSnap.forEach((msg) => {
+                let data = msg.val();
+                finalHtml += `
+                    <div class="order-item-notif" style="border-left: 4px solid #f45a32;">
+                        <p style="font-weight:700; color:#e74c3c;"><i class="fas fa-bullhorn"></i> Admin Notice</p>
+                        <p style="margin-top:4px; color:#333; font-size:12px;">${data.message || data}</p>
+                        <span style="font-size:8px; color:#aaa; display:block; text-align:right; margin-top:4px;">${data.date || ''}</span>
+                    </div>`;
+            });
+        }
+
+        db.ref("orders/" + userData.uid).once("value", (orderSnap) => {
+            if(orderSnap.exists()){
+                orderSnap.forEach((ord) => {
+                    let o = ord.val();
+                    if(o.status === 'active'){
+                        finalHtml += `
+                            <div class="order-item-notif" style="border-left: 4px solid #2ecc71; background:#f2fff6;">
+                                <p style="font-weight:700; color:#2ecc71;"><i class="fas fa-check-circle"></i> Campaign Approved!</p>
+                                <p style="margin-top:2px; color:#555;">Aapki <b>${o.service}</b> link approve ho gayi hai aur ab users ko live dikh rahi hai.</p>
+                                <p style="font-size:9px; word-break:break-all; color:#888; margin-top:3px;">Link: ${o.url}</p>
+                            </div>`;
+                    }
+                });
+            }
+
+            if(finalHtml === "") {
+                notifList.innerHTML = "<p style='color:#999; font-size:12px; padding:20px; font-weight:600;'>Abhi tak koi naya notification nahi mila hai.</p>";
+            } else {
+                notifList.innerHTML = finalHtml;
+            }
+        });
+    });
+}
+
+function closeNotificationModal() {
+    document.getElementById("notificationModal").style.display = "none";
+}
+
+function initLiveWithdrawalTicker() {
+    db.ref("users").once("value", (usersSnap) => {
+        withdrawalListGlobal = []; 
+        if(usersSnap.exists()) {
+            usersSnap.forEach((uSnap) => {
+                let uData = uSnap.val();
+                let username = uData.name || "Premium User";
+                if(uData.history && uData.history.withdrawals) {
+                    let wNode = uData.history.withdrawals;
+                    for(let id in wNode) {
+                        withdrawalListGlobal.push({
+                            name: username,
+                            amount: wNode[id].amount || wNode[id].coins || 0,
+                            date: wNode[id].date || "Recent"
+                        });
+                    }
+                }
+            });
+        }
+        
+        if(withdrawalListGlobal.length === 0) {
+            withdrawalListGlobal = [
+                { name: "Rahul Kumar", amount: 1500, date: "Today" },
+                { name: "Amit Sharma", amount: 2200, date: "Today" },
+                { name: "Priya Patel", amount: 5000, date: "Yesterday" }
+            ];
+        }
+        
+        startWithdrawalLoopAnimation();
+    });
+}
+
+function startWithdrawalLoopAnimation() {
+    const tickerContainer = document.getElementById("tickerText");
+    if(!tickerContainer) return;
+
+    if(window.tickerIntervalId) clearInterval(window.tickerIntervalId);
+
+    window.tickerIntervalId = setInterval(() => {
+        tickerContainer.classList.remove("show");
+        tickerContainer.classList.add("hide");
+
+        setTimeout(() => {
+            if (withdrawalListGlobal.length === 0) return;
+            let currentRecord = withdrawalListGlobal[activeTickerIndex];
+            
+            let maskedName = currentRecord.name;
+            if(maskedName.length > 4) {
+                maskedName = maskedName.substring(0, 3) + "***" + maskedName.substring(maskedName.length - 1);
+            }
+
+            tickerContainer.innerHTML = `
+                <i class="fas fa-check-circle" style="color:#2ecc71;"></i>
+                <span>${maskedName} successfully withdrew</span>
+                <span class="ticker-coin-badge">🪙 ${currentRecord.amount.toLocaleString()} Coins</span>
+            `;
+
+            tickerContainer.classList.remove("hide");
+            tickerContainer.classList.add("show");
+
+            activeTickerIndex = (activeTickerIndex + 1) % withdrawalListGlobal.length;
+
+        }, 500); 
+
+    }, 3800); 
+}
+
+function getLevel(e) {
+    let exp = Number(e); if (exp >= 10000) return { n: "Diamond", c: "#00d2ff", i: "fa-gem" }; if (exp >= 100) return { n: "Silver", c: "#95a5a6", i: "fa-medal" }; return { n: "Bronze", c: "#cd7f32", i: "fa-award" };
+}
+
+const quizRedirectURL = "https://omg10.com/4/7845161";
+let userData = { uid: "", name: "Loading...", coins: 0, lifetimeEarnings: 0, completedTasks: [], stats: { dailyBonus: false, visitCount: 0, quizCount: 0 } };
+
+const firebaseConfig = { apiKey: "AIzaSyBrr8T6MhvyCR4ocLqkBjZFlkLbQXAEwyk", databaseURL: "https://online-earning-app-607bb-default-rtdb.firebaseio.com", authDomain: "online-earning-app-607bb.firebaseapp.com" };
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+const db = firebase.database(); const auth = firebase.auth();
+
+let isAuthListenerAttached = false;
+
+if(!isAuthListenerAttached) {
+    isAuthListenerAttached = true;
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            userData.uid = user.uid; localStorage.setItem("user_mobile", user.uid);
+            ["navHome", "navLeader", "navRefer", "navProfile"].forEach(id => { let el = document.getElementById(id); if(el) el.href = el.href.split('?')[0] + "?uid=" + userData.uid; });
+            showLoading();
+            db.ref("users/" + userData.uid).on("value", (snap) => {
+                hideLoading(); const d = snap.val(); if (!d) return;
+                userData.name = d.name || "User"; userData.coins = parseInt(d.coins || 0); userData.lifetimeEarnings = Number(d.lifetime_earnings || 0); userData.completedTasks = d.completed_tasks || [];
+                const today = new Date().toLocaleDateString(); const s = d.task_stats || {};
+                userData.stats.dailyBonus = (s.last_check === today); userData.stats.visitCount = (s.visit_date === today) ? s.visit_count : 0; userData.stats.quizCount = (s.quiz_date === today) ? s.quiz_count : 0;
+                document.getElementById("coinsDisplay").innerText = userData.coins.toLocaleString(); document.getElementById("rsValueDisplayHome").innerText = (userData.coins / 100).toFixed(2); document.getElementById("uName").innerText = "Hi, " + userData.name; document.getElementById("uImg").src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.uid}`;
+                let l = getLevel(userData.lifetimeEarnings); let tag = document.getElementById("uLevelTag"); if(tag) { tag.innerHTML = `<i class="fas ${l.i}"></i> ${l.n}`; tag.style.color = l.c; }
+                if(userData.stats.dailyBonus) document.getElementById('dailyTxt').innerHTML = "✅ Complete"; if(userData.stats.visitCount >= 50) document.getElementById('visitTxt').innerHTML = "✅ Complete"; if(userData.stats.quizCount >= 20) document.getElementById('quizTxt').innerHTML = "✅ Complete";
+                runAutoCleanup(userData.coins);
+                
+                if (userData.coins < 10) {
+                    document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = "none");
+                    openCoinStore(); 
+                } else {
+                    setupNotificationBadgeListener();
+                }
+                initLiveWithdrawalTicker();
+            });
+        } else { window.location.replace("Login.html"); }
+    });
+}
+
+function saveReward(type, win) {
+    const today = new Date().toLocaleDateString();
+    db.ref("users/" + userData.uid).once("value", (snap) => {
+        let d = snap.val(); let newCoins = (d.coins || 0) + win; let newLifetime = (Number(d.lifetime_earnings) || 0) + win;
+        db.ref("users/" + userData.uid).update({ coins: newCoins, lifetime_earnings: newLifetime }).then(() => { if(win > 0) playCoinSound(); });
+        if(type === 'quiz') { db.ref("users/" + userData.uid + "/task_stats").update({ quiz_count: userData.stats.quizCount + 1, quiz_date: today }); }
+        if(win > 0) { db.ref("users/" + userData.uid + "/history/earnings").push({ amount: win, reason: type, date: today }); }
+    });
+}
+
+function claimDailyBonus() { const today = new Date().toLocaleDateString(); if(userData.stats.dailyBonus) return alert("✅ Today's task complete!"); saveReward('Daily Bonus', 10); db.ref("users/" + userData.uid + "/task_stats").update({ last_check: today }); alert("🎉 10 Coins claimed!"); }
+function openQuiz() { if(!checkNet()) return; if(userData.stats.quizCount >= 20) return alert("✅ Complete for today!"); quizCounter = 0; generateQ(); document.getElementById('quizModal').style.display = "flex"; }
+function generateQ() { const n1 = Math.floor(Math.random()*20)+1, n2 = Math.floor(Math.random()*10)+1; quizAnswer = n1 + n2; document.getElementById('questionBox').innerText = `${n1} + ${n2} = ?`; document.getElementById('quizAnswer').value = ""; document.getElementById('quizStatus').innerText = ""; document.getElementById('quizLimitText').innerText = `Limit: ${20 - userData.stats.quizCount}/20 Left`; }
+function checkQuizAnswer() {
+    const ans = parseInt(document.getElementById('quizAnswer').value); if(isNaN(ans)) return; quizCounter++;
+    let win = (ans === quizAnswer) ? 2 : 0; saveReward('quiz', win);
+    if(ans === quizAnswer) document.getElementById('quizStatus').innerText = "✅ Success! +2 Coins"; else document.getElementById('quizStatus').innerText = "❌ Wrong Answer!";
+    if (quizCounter >= 3) { setTimeout(() => { document.getElementById('quizModal').style.display = "none"; document.getElementById('extraRewardModal').style.display = "flex"; }, 1500); } else { if(userData.stats.quizCount >= 19) setTimeout(closeQuiz, 1500); else setTimeout(generateQ, 1500); }
+}
+
+let bonusStartTime = 0; let bonusRunning = false;
+function claimExtraBonus() { bonusStartTime = Date.now(); bonusRunning = true; window.open(quizRedirectURL, '_blank'); const statusEl = document.getElementById('quizStatus'); if(statusEl) { statusEl.innerText = "Kripya 5 seconds tak wahan rukiye..."; statusEl.style.color = "#f45a32"; } }
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'visible' && bonusRunning) {
+        const timeSpent = Math.floor((Date.now() - bonusStartTime) / 1000);
+        if (timeSpent >= 5) { saveReward('Extra Quiz Reward', 1); alert("🎉 Mubarakan! Aapne 5s intezaar kiya. 20 Coins add kar diye gaye hain."); bonusRunning = false; closeExtraModal(); } else { alert("❌ Aap 5 seconds se pehle wapas aa gaye! Coins nahi milenge. Dobara koshish karein."); bonusRunning = false; }
+    }
+});
+
+function openVisitModal() {
+    if(!checkNet()) return; showLoading();
+    db.ref("visit_links").once("value", (snap) => {
+        hideLoading(); let links = snap.val(), found = false;
+        if(links) { for(let id in links) { if(!userData.completedTasks.includes(id)) { currentVisitId = id; currentVisitLink = links[id].url || links[id].link; userData.currentVisitCode = links[id].code || ""; userData.currentVisitReward = parseInt(links[id].reward) || 5; let codeHint = links[id].hint || "वेबसाइट पर जाएं Burt और कोड ढूंढें।"; giveInstruction("ध्यान से सुनें: " + codeHint); document.getElementById('visitStatusMsg').innerHTML = `<i class='fas fa-lightbulb' style='color:#f45a32;'></i> <b>Hint:</b> ${codeHint}`; found = true; break; } } }
+        if(!found) return alert("❌ No more links available!");
+        document.getElementById('visitStartBtn').style.display = "block"; document.getElementById('visitConfirmBtn').style.display = "none"; document.getElementById('visitPBox').style.display = "none"; document.getElementById('visitPFill').style.width = "0%"; document.getElementById('visitModal').style.display = "flex";
+    });
+}
+
+function startExternalVisit() { visitStartTime = Date.now(); visitRunning = true; let msg = document.getElementById('visitStatusMsg').innerText; giveInstruction("याद रखें: " + msg); document.getElementById('visitStartBtn').style.display = "none"; setTimeout(() => { window.open(currentVisitLink, '_blank'); document.getElementById('visitStatusMsg').innerText = "10 seconds wahan rukein aur code dhoondhein..."; }, 2500); }
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'visible' && visitRunning) {
+        returnTime = Date.now(); let diff = Math.floor((returnTime - visitStartTime) / 1000);
+        if (diff >= 10) { document.getElementById('codeArea').style.display = "block"; document.getElementById('visitConfirmBtn').style.display = "block"; document.getElementById('visitStatusMsg').innerText = "Website par mila code niche bhariye:"; } else { alert("❌ Kripya kam se kam 10 second wahan rukein!"); }
+    }
+});
+
+function verifyVisit() {
+    const inputCode = document.getElementById('visitCodeInput').value.trim(); if (inputCode !== userData.currentVisitCode) { alert("❌ Galat Code! Kripya sahi code enter karein."); return; }
+    document.getElementById('visitConfirmBtn').style.display = "none"; document.getElementById('codeArea').style.display = "none";
+    const pBox = document.getElementById('visitPBox'); const pFill = document.getElementById('visitPFill'); pBox.style.display = "block"; setTimeout(() => { pFill.style.width = "100%"; }, 50);
+    setTimeout(() => { userData.completedTasks.push(currentVisitId); db.ref("users/" + userData.uid).update({ coins: userData.coins + userData.currentVisitReward, lifetime_earnings: userData.lifetimeEarnings + userData.currentVisitReward, completed_tasks: userData.completedTasks }).then(() => { playCoinSound(); alert("✅ Success! " + userData.currentVisitReward + " Coins Added."); closeVisitModal(); }).catch(err => { alert("Error updating coins: " + err.message); }); }, 2000);
+}
+function closeVisitModal() { document.getElementById('visitModal').style.display = "none"; visitRunning = false; document.getElementById('visitCodeInput').value = ""; }
+
+function openOfferwall(type) {
+    currentPlat = 'Offerwalls';
+    currentType = type;
+    
+    document.getElementById('finalTitle').innerText = type + " Offerwall";
+    document.getElementById('finalIcon').src = "https://cdn-icons-png.flaticon.com/512/3268/3268582.png";
+    document.getElementById('rewardDisplay').innerText = "🎁 Earn: Auto-Credit Coins";
+    
+    document.getElementById('taskProfileBox').style.display = 'flex';
+    document.getElementById('taskSocialId').innerText = "Complete surveys & apps";
+    document.getElementById('taskMiniImage').src = "https://cdn-icons-png.flaticon.com/512/3268/3268582.png";
+    
+    document.getElementById('ytSubBtn').style.display = "none";
+    document.getElementById('confirmBtn').style.display = "none";
+    document.getElementById('screenshotSection').style.display = "none";
+    document.getElementById('codeContainer').style.display = "none";
+    document.getElementById('aiMonitorBox').style.display = "none";
+    document.getElementById('statusMsg').innerHTML = "<b style='color:#3498db;'>Niche diye gaye system me task poora karein</b>";
+    
+    document.getElementById('iframeSection').style.display = "block";
+    
+    let url = "";
+    if(type === 'TimeWall') url = "https://timewall.io/iframe?uid=" + userData.uid;
+    else if(type === 'CPAGrip') url = "https://cpagrip.com/offers?uid=" + userData.uid;
+    else if(type === 'Monlix') url = "https://monlix.com/offers?uid=" + userData.uid;
+    
+    document.getElementById('offerwallIframe').src = url;
+    
+    document.getElementById('taskModal').style.display = "none";
+    document.getElementById('ytFinalModal').style.display = "flex";
+}
+
+function openTaskModal(plat, logo) {
+    currentPlat = plat; document.getElementById('mLogo').src = logo; document.getElementById('taskProfileBox').style.display = 'none';
+    const grid = document.querySelector('.task-modal-grid');
+    if (plat === 'Offerwalls') {
+        grid.innerHTML = `
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openOfferwall('TimeWall')">
+                <i class="fas fa-tasks" style="font-size:24px; color:#3498db;"></i>
+                <div><h4 style="font-size:14px;">TimeWall</h4><p style="font-size:10px;">Surveys & Tasks</p></div>
+            </div>
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openOfferwall('CPAGrip')">
+                <i class="fas fa-gift" style="font-size:24px; color:#2ecc71;"></i>
+                <div><h4 style="font-size:14px;">CPAGrip</h4><p style="font-size:10px;">High Paying Offers</p></div>
+            </div>
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openOfferwall('Monlix')">
+                <i class="fas fa-money-bill-wave" style="font-size:24px; color:#9b59b6;"></i>
+                <div><h4 style="font-size:14px;">Monlix</h4><p style="font-size:10px;">App Installs & More</p></div>
+            </div>`;
+    } else if (plat === 'AppInstall') {
+        grid.innerHTML = `
+            <div class="task-card" style="padding:12px; color:#333; display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer;" onclick="openFinalTask('Install')"><i class="fab fa-google-play" style="font-size:20px; color:#3ddc84;"></i><div><h4>PlayStore Install</h4><p style="font-size:10px;">Earn 🪙 <span id="val1">0</span></p></div></div>
+            <div class="task-card" style="padding:12px; color:#333; display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer;" onclick="openFinalTask('Review')"><i class="fas fa-star" style="font-size:20px; color:#f1c40f;"></i><div><h4>Install & Review</h4><p style="font-size:10px;">Earn 🪙 <span id="val2">0</span></p></div></div>`;
+        loadSocialTask('Install', 'val1'); loadSocialTask('Review', 'val2');
+    } else if (plat === 'Shortlink') {
+        grid.innerHTML = `
+            <div class="task-card" style="padding:15px; color:#333; cursor:pointer;" onclick="openFinalTask('1 page URL shortener')"><h4>1 Page</h4><p>Earn 15 Coins</p></div>
+            <div class="task-card" style="padding:15px; color:#333; cursor:pointer;" onclick="openFinalTask('2 page URL shortener')"><h4>2 Page</h4><p>Earn 20 Coins</p></div>
+            <div class="task-card" style="padding:15px; color:#333; cursor:pointer;" onclick="openFinalTask('3 & 4 page URL shortener')"><h4>3 & 4 Page</h4><p>Earn 25 Coins</p></div>`;
+    } else if (plat === 'WebHits') {
+        grid.innerHTML = `
+            <div class="task-card" style="padding:12px; color:#333; display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer;" onclick="openFinalTask('Visit')"><i class="fas fa-image" style="font-size:20px; color:#f45a32;"></i><div><h4>Visit Link (SS)</h4><p style="font-size:10px;">Earn 🪙 <span id="val1">0</span></p></div></div>
+            <div class="task-card" style="padding:12px; color:#333; display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer;" onclick="openFinalTask('Direct')"><i class="fas fa-bolt" style="font-size:20px; color:#2ecc71;"></i><div><h4>Direct Link (8s)</h4><p style="font-size:10px;">Earn 🪙 <span id="val2">0</span></p></div></div>`;
+        loadSocialTask('Visit', 'val1'); loadSocialTask('Direct', 'val2');
+    } else {
+        grid.innerHTML = `
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openFinalTask('Subscribe')"><i class="fas fa-plus-circle" style="font-size:24px; color:#f45a32;"></i><div><h4 id="mT1">Subscribe</h4><p style="font-size:11px;">Earn 🪙 <span id="val1">0</span></p></div></div>
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openFinalTask('Like')"><i class="fas fa-heart" style="font-size:24px; color:#f45a32;"></i><div><h4>Like Content</h4><p style="font-size:11px;">Earn 🪙 <span id="val2">0</span></p></div></div>
+            <div class="task-card" style="padding:15px; color:#333; display:flex; align-items:center; gap:15px; text-align:left; cursor:pointer;" onclick="openFinalTask('Watch')"><i class="fas fa-play-circle" style="font-size:24px; color:#f45a32;"></i><div><h4>Watch Video</h4><p style="font-size:11px;">Earn 🪙 <span id="val3">0</span></p></div></div>`;
+        loadSocialTask('Subscribe', 'val1'); loadSocialTask('Like', 'val2'); loadSocialTask('Watch', 'val3');
+    }
+    document.getElementById('taskModal').style.display = "flex";
+}
+
+function loadSocialTask(type, valId) {
+    db.ref(`tasks/${currentPlat}/${type}`).once("value", (snap) => {
+        let tasks = snap.val(), found = false; if(tasks){ for(let id in tasks){ if(!userData.completedTasks.includes(id) && tasks[id].owner !== userData.uid){ document.getElementById(valId).innerText = tasks[id].value; found = true; break; } } }
+        if(!found) {
+            let el = document.getElementById(valId);
+            if(el) el.innerText = "Complete ✅";
+        }
+    });
+}
+
+function openFinalTask(type) {
+    currentType = type; showLoading();
+    db.ref(`tasks/${currentPlat}/${type}`).once("value", async (snap) => {
+        hideLoading(); 
+        let tasks = snap.val(), found = false; 
+        let socialId = "", currentWebHitsText = "";
+        
+        if (tasks) {
+            for (let id in tasks) {
+                if (!userData.completedTasks.includes(id) && tasks[id].owner !== userData.uid) {
+                    let advertiserFound = await findAdvertiserByTaskId(id);
+                    if (advertiserFound && advertiserFound.coins >= advertiserFound.cost) {
+                        currentTaskId = id; 
+                        currentTaskLink = tasks[id].link; 
+                        currentTaskVal = tasks[id].value; 
+                        socialId = tasks[id].socialId || ""; 
+                        currentWebHitsText = tasks[id].webhitsText || ""; 
+                        found = true; 
+                        break;
+                    }
+                }
+            }
+        }
+        if(!found) return alert("✅ No active tasks available!");
+        
+        document.getElementById('finalTitle').innerText = (type === 'Direct') ? "Direct Link (8s Stay)" : type; 
+        document.getElementById('finalIcon').src = document.getElementById('mLogo').src; 
+        document.getElementById('rewardDisplay').innerText = "🎁 Earn: " + currentTaskVal + " Coins"; 
+        document.getElementById('taskProfileBox').style.display = 'flex';
+        
+        if (currentPlat === 'WebHits') {
+            if(type === 'Direct') {
+                document.getElementById('taskSocialId').innerText = "Direct Open Stay Link";
+            } else {
+                document.getElementById('taskSocialId').innerText = currentWebHitsText;
+            }
+            document.getElementById('taskMiniImage').src = "https://cdn-icons-png.flaticon.com/512/1006/1006771.png"; 
+        } else if (currentPlat === 'AppInstall') {
+            document.getElementById('taskSocialId').innerText = socialId || "Sponsored App"; 
+            document.getElementById('taskMiniImage').src = "https://cdn-icons-png.flaticon.com/512/888/888857.png";
+        } else {
+            document.getElementById('taskSocialId').innerText = socialId || "Sponsored Profile"; 
+            document.getElementById('taskMiniImage').src = document.getElementById('mLogo').src;
+        }
+        
+        document.getElementById('ytSubBtn').style.display = "block"; 
+        document.getElementById('confirmBtn').style.display = "none"; 
+        document.getElementById('screenshotSection').style.display = "none"; 
+        document.getElementById('ssInput').value = "";
+        document.getElementById('aiMonitorBox').style.display = "none"; 
+        document.getElementById('monitorCanvases').innerHTML = "";
+        
+        const iframeSec = document.getElementById('iframeSection');
+        if(iframeSec) iframeSec.style.display = "none"; 
+        
+        if(currentPlat === 'Shortlink') { document.getElementById('codeContainer').style.display = "block"; } else { document.getElementById('codeContainer').style.display = "none"; }
+        document.getElementById('pBox').style.display = "none"; 
+        document.getElementById('pFill').style.width = "0%"; 
+        document.getElementById('statusMsg').innerText = "Pehle Action poora karein"; 
+        document.getElementById('taskModal').style.display = "none"; 
+        document.getElementById('ytFinalModal').style.display = "flex";
+
+        document.getElementById('ytSubBtn').style.display = "block"; 
+        document.getElementById('confirmBtn').style.display = "none"; 
+        document.getElementById('screenshotSection').style.display = "none";
+    });
+}
+
+async function findAdvertiserByTaskId(taskId) {
+    let orderSnap = await db.ref("orders").once("value"); let result = null;
+    orderSnap.forEach(userOrders => { userOrders.forEach(order => { if(order.val().taskId === taskId) result = { uid: userOrders.key, cost: order.val().cost }; }); });
+    if(!result) return null;
+    let userSnap = await db.ref("users/"+result.uid).once("value"); return { coins: userSnap.val().coins || 0, cost: result.cost, uid: result.uid };
+}
+
+async function startYtTask() { 
+    startTime = Date.now(); running = true; 
+    if(currentPlat === 'Shortlink') {
+        const code = Math.floor(100000 + Math.random() * 900000); showLoading(); let advertiserData = await findAdvertiserByTaskId(currentTaskId); hideLoading();
+        if (advertiserData) {
+            db.ref("active_shortlink_sessions/" + advertiserData.uid).set({ code: code, user_who_clicked: userData.uid, timestamp: Date.now() });
+            let finalUrl = currentTaskLink.includes('uid=') ? currentTaskLink.replace(/uid=[^&]*/, `uid=${advertiserData.uid}`) + `&code=${code}` : `${currentTaskLink}${currentTaskLink.includes('?') ? '&' : '?'}uid=${advertiserData.uid}&code=${code}`;
+            window.open(finalUrl, '_blank');
+        } else { return alert("Error: Advertiser session failed!"); }
+    } else { window.open(currentTaskLink, '_blank'); }
+    
+    document.getElementById('ytSubBtn').style.display = "none"; document.getElementById('confirmBtn').style.display = "block"; 
+    
+    if (currentType !== 'Watch' && currentType !== 'Direct' && (currentPlat === 'YouTube' || currentPlat === 'Instagram' || currentPlat === 'Facebook' || currentPlat === 'Telegram' || currentPlat === 'WebHits' || currentPlat === 'AppInstall')) { 
+        document.getElementById('screenshotSection').style.display = "block"; 
+    } else { 
+        document.getElementById('screenshotSection').style.display = "none"; 
+    }
+}
+
+async function verifyTask() {
+    const ssFile = document.getElementById('ssInput').files[0];
+    if (currentPlat !== 'Shortlink' && currentType !== 'Watch' && currentType !== 'Direct' && !ssFile) return alert("❌ Pehle screenshot select karein!");
+    if (currentPlat === 'Shortlink') {
+        const enteredCode = document.getElementById('uniqueCodeInput').value; showLoading(); let advertiserData = await findAdvertiserByTaskId(currentTaskId);
+        if(!advertiserData) { hideLoading(); return alert("❌ Advertiser error!"); }
+        const sessionSnap = await db.ref("active_shortlink_sessions/" + advertiserData.uid).once("value"); hideLoading();
+        if(!sessionSnap.val() || enteredCode != sessionSnap.val().code) return alert("❌ Wrong Code!");
+        await finalizeDirectSuccess(); return;
+    }
+    
+    if (currentType === 'Watch' || currentType === 'Direct') {
+        let targetStaySeconds = (currentType === 'Direct') ? 8 : 10;
+        let diff = Math.floor((Date.now() - startTime) / 1000); 
+        if (diff < targetStaySeconds) return alert(`❌ Error: Kam se kam ${targetStaySeconds} seconds tak stay karein!`);
+        await finalizeDirectSuccess(); return;
+    }
+
+    let diff = Math.floor((Date.now() - startTime) / 1000); if (diff < 10) return alert("❌ Kam se kam 10 seconds stay karein!");
+    
+    const allowedPlatforms = ['YouTube', 'Instagram', 'Telegram', 'Facebook', 'WebHits', 'AppInstall'];
+    if (allowedPlatforms.includes(currentPlat)) {
+        const targetSocialId = document.getElementById('taskSocialId').innerText.trim();
+        if (targetSocialId && targetSocialId !== "Sponsored Profile" && targetSocialId !== "Sponsored App") {
+            showLoading(); document.getElementById('statusMsg').innerText = "AI Running 6-Area Perfect Scan... 🤖";
+            
+            if (currentPlat === 'AppInstall') {
+                const isAppMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} App Name:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Action:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: 0, y: h*0.05, w: w, h: h*0.15}, act: {x: 0, y: h*0.15, w: w, h: h*0.15} },
+                            { id: {x: 0, y: h*0.10, w: w, h: h*0.15}, act: {x: 0, y: h*0.20, w: w, h: h*0.15} },
+                            { id: {x: 0, y: h*0.15, w: w, h: h*0.15}, act: {x: 0, y: h*0.25, w: w, h: h*0.15} }
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d', { willReadFrequently: true });
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyOCRFilterBackground(idCtx, p.id.w, p.id.h);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d', { willReadFrequently: true });
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            applyOCRFilterBackground(actCtx, p.act.w, p.act.h);
+
+                            const { data: { text: actText } } = await worker.recognize(actCanv.toDataURL());
+                            let cleanAct = actText.toLowerCase();
+                            let hasInstalledKeyword = cleanAct.includes('uninstall') || cleanAct.includes('open') || cleanAct.includes('play');
+                            
+                            if (currentType === 'Review') {
+                                hasInstalledKeyword = hasInstalledKeyword || cleanAct.includes('edit your review') || cleanAct.includes('your review');
+                            }
+
+                            if(hasInstalledKeyword) {
+                                const { data: { text: idText } } = await worker.recognize(idCanv.toDataURL());
+                                const targetClean = ultraCleanText(targetSocialId);
+                                let cleanScanned = ultraCleanText(idText);
+                                
+                                let matchScore = calculateSimilarity(targetClean, cleanScanned) * 100;
+                                if (cleanScanned.includes(targetClean) || targetClean.includes(cleanScanned) || matchScore >= 55) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isAppMatched) {
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! Screenshot me sahi App Name aur 'Uninstall/Open' (Installed status) match nahi hua."); 
+                }
+                await finalizeDirectSuccess(); return;
+            }
+            
+            else if (currentPlat === 'Instagram' && currentType === 'Like') {
+                const isMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} ID Area:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Act Area:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: 0, y: h*0.77, w: w*0.55, h: h*0.12}, act: {x: w*0.83, y: h*0.45, w: w*0.15, h: h*0.04} },
+                            { id: {x: 0, y: h*0.70, w: w*0.55, h: h*0.12}, act: {x: w*0.83, y: h*0.50, w: w*0.15, h: h*0.04} },
+                            { id: {x: 0, y: h*0.82, w: w*0.55, h: h*0.12}, act: {x: w*0.83, y: h*0.55, w: w*0.15, h: h*0.04} }
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d', { willReadFrequently: true });
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyOCRFilterBackground(idCtx, p.id.w, p.id.h);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d', { willReadFrequently: true });
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            let isHeartRed = checkRedColorBackground(actCtx, p.act.w, p.act.h);
+
+                            if(isHeartRed) {
+                                const { data: { lines } } = await worker.recognize(idCanv.toDataURL());
+                                const targetClean = ultraCleanText(targetSocialId);
+                                for (let j = 0; j < Math.min(lines.length, 2); j++) {
+                                    if (lines[j].text.includes('#') || lines[j].text.toLowerCase().includes('follow')) continue;
+                                    if (ultraCleanText(lines[j].text).includes(targetClean)) { matchFound = true; break; }
+                                }
+                                if(matchFound) break;
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! ScreenShot me Sahi Profile ID aur Red Heart DONO hona anivarya hai."); 
+                }
+                await finalizeDirectSuccess(); return;
+            } 
+            
+            else if (currentPlat === 'Instagram' && currentType === 'Subscribe') {
+                const isInstaFollowMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} Profile ID:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Status:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: w*0.15, y: h*0.06, w: w*0.60, h: h*0.06}, act: {x: w*0.07, y: h*0.18, w: w*0.85, h: h*0.05} },
+                            { id: {x: w*0.15, y: h*0.08, w: w*0.60, h: h*0.06}, act: {x: w*0.07, y: h*0.22, w: w*0.85, h: h*0.05} },
+                            { id: {x: w*0.15, y: h*0.10, w: w*0.60, h: h*0.06}, act: {x: w*0.07, y: h*0.26, w: w*0.85, h: h*0.05} }
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d');
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyUltraFilterBackground(idCtx, p.id.w, p.id.h);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d');
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            let isFollowingGrey = checkSubscriptionStatusBackground(actCtx, p.act.w, p.act.h);
+
+                            if(isFollowingGrey) {
+                                const { data: { text } } = await worker.recognize(idCanv.toDataURL());
+                                let cleanScanned = text.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                                if (cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 60) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isInstaFollowMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! प्रोफाइल आईडी मैच नहीं हुई या फॉलो बटन 'Following' स्टेटस में नहीं मिला।"); 
+                }
+                await finalizeDirectSuccess(); return;
+            }
+
+            else if (currentPlat === 'Facebook' && currentType === 'Subscribe') {
+                const isFbFollowMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} Page Name:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Status:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: w*0.05, y: h*0.32, w: w*0.80, h: h*0.06}, act: {x: w*0.05, y: h*0.40, w: w*0.45, h: h*0.05} },
+                            { id: {x: w*0.05, y: h*0.28, w: w*0.80, h: h*0.06}, act: {x: w*0.05, y: h*0.36, w: w*0.45, h: h*0.05} },
+                            { id: {x: w*0.05, y: h*0.36, w: w*0.80, h: h*0.06}, act: {x: w*0.05, y: h*0.44, w: w*0.45, h: h*0.05} }
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d');
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyUltraFilterBackground(idCtx, p.id.w, p.id.h);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d');
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            let isFbFollowed = checkFacebookFollowDensity(actCtx, p.act.w, p.act.h);
+
+                            if(isFbFollowed) {
+                                const { data: { text } } = await worker.recognize(idCanv.toDataURL());
+                                let cleanScanned = text.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                                if (cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 55) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isFbFollowMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! फेसबुक पेज का नाम या फॉलो स्टेटस मैच नहीं हुआ।"); 
+                }
+                await finalizeDirectSuccess(); return;
+            }
+
+            else if (currentPlat === 'Facebook' && currentType === 'Like') {
+                const isFbLikeMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} Handle:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Like:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: w*0.05, y: h*0.82, w: w*0.60, h: h*0.05}, act: {x: w*0.85, y: h*0.52, w: w*0.14, h: h*0.05} }, // Reels
+                            { id: {x: w*0.15, y: h*0.12, w: w*0.50, h: h*0.04}, act: {x: w*0.05, y: h*0.22, w: w*0.30, h: h*0.04} }, // Long 1
+                            { id: {x: w*0.15, y: h*0.16, w: w*0.50, h: h*0.04}, act: {x: w*0.05, y: h*0.27, w: w*0.30, h: h*0.04} }  // Long 2
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d');
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyUltraFilterLikeBackground(idCanv);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d');
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            let isFbBlue = checkFacebookBlueLike(actCtx, p.act.w, p.act.h);
+
+                            if(isFbBlue) {
+                                const { data: { text } } = await worker.recognize(idCanv.toDataURL());
+                                let cleanScanned = text.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                                if (cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 60) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isFbLikeMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! फेसबुक स्क्रीनशॉट में सही नाम और नीले रंग का Like बटन दोनों एक साथ मैच नहीं हुए।"); 
+                }
+                await finalizeDirectSuccess(); return;
+            }
+
+            else if (currentPlat === 'YouTube' && currentType === 'Subscribe') {
+                const isYtMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} Handle Area:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Subs Button:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: w*0.25, y: h*0.15, w: w*0.65, h: h*0.04}, act: {x: w*0.04, y: h*0.245, w: w*0.92, h: h*0.05} }, // Shorts
+                            { id: {x: w*0.25, y: h*0.26, w: w*0.65, h: h*0.04}, act: {x: w*0.04, y: h*0.385, w: w*0.42, h: h*0.05} }, // Full
+                            { id: {x: w*0.25, y: h*0.31, w: w*0.65, h: h*0.04}, act: {x: w*0.04, y: h*0.425, w: w*0.42, h: h*0.05} }  // Full Alt
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+                        await worker.setParameters({ tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@_.- ' });
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d');
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyUltraFilterBackground(idCtx, p.id.w, p.id.h);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d');
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            let isSubscribed = checkSubscriptionStatusBackground(actCtx, p.act.w, p.act.h);
+
+                            if(isSubscribed) {
+                                const { data: { text } } = await worker.recognize(idCanv.toDataURL());
+                                let cleanScanned = text.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                                if (cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 60) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isYtMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! Kisi bhi layout me Sahi Handle aur Subscribe Button DONO nahi mile."); 
+                }
+                await finalizeDirectSuccess(); return;
+            } 
+            
+            else if (currentPlat === 'YouTube' && currentType === 'Like') {
+                const isYtLikeMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} Handle Area:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Like Status:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: w*0.05, y: h*0.72, w: w*0.75, h: h*0.10}, act: {x: w*0.83, y: h*0.435, w: w*0.15, h: h*0.065}, check: detectShortsWhiteLikeBackground },
+                            { id: {x: w*0.02, y: h*0.345, w: w*0.50, h: h*0.04}, act: {x: w*0.35, y: h*0.390, w: w*0.10, h: h*0.045}, check: detectFullVideoWhiteLikeBackground },
+                            { id: {x: w*0.02, y: h*0.385, w: w*0.50, h: h*0.04}, act: {x: w*0.35, y: h*0.430, w: w*0.10, h: h*0.045}, check: detectFullVideoWhiteLikeBackground }
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+                        await worker.setParameters({ tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@_.- ' });
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d');
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyUltraFilterLikeBackground(idCanv);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d');
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            let isLiked = p.check(actCanv);
+
+                            if(isLiked) {
+                                const { data: { text } } = await worker.recognize(idCanv.toDataURL());
+                                let cleanScanned = text.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                                if (cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 60) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isYtLikeMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! ScreenShot me Sahi Handle aur Like Status DONO ek sath match nahi hue."); 
+                }
+                await finalizeDirectSuccess(); return;
+            } 
+            
+            else if (currentPlat === 'Telegram' && currentType === 'Subscribe') {
+                const isTeleMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        let canvasesHtml = "";
+                        for(let i=1; i<=3; i++) {
+                            canvasesHtml += `<div><p style="color:#fff; font-size:8px;">P${i} Channel:</p><canvas id="monId${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>
+                                             <div><p style="color:#fff; font-size:8px;">P${i} Status:</p><canvas id="monAct${i}" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        }
+                        monitorGrid.innerHTML = canvasesHtml;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const pairs = [
+                            { id: {x: w*0.18, y: h*0.05, w: w*0.65, h: h*0.06}, act: {x: 0, y: h*0.92, w: w, h: h*0.08} },
+                            { id: {x: w*0.18, y: h*0.07, w: w*0.65, h: h*0.06}, act: {x: 0, y: h*0.90, w: w, h: h*0.08} },
+                            { id: {x: w*0.18, y: h*0.09, w: w*0.65, h: h*0.06}, act: {x: 0, y: h*0.88, w: w, h: h*0.08} }
+                        ];
+
+                        let matchFound = false;
+                        const worker = await Tesseract.createWorker('eng');
+
+                        for(let i=0; i<3; i++) {
+                            let p = pairs[i];
+                            let idCanv = document.getElementById(`monId${i+1}`); let idCtx = idCanv.getContext('2d');
+                            idCanv.width = p.id.w; idCanv.height = p.id.h; idCtx.drawImage(img, p.id.x, p.id.y, p.id.w, p.id.h, 0, 0, p.id.w, p.id.h);
+                            applyUltraFilterBackground(idCtx, p.id.w, p.id.h);
+
+                            let actCanv = document.getElementById(`monAct${i+1}`); let actCtx = actCanv.getContext('2d');
+                            actCanv.width = p.act.w; actCanv.height = p.act.h; actCtx.drawImage(img, p.act.x, p.act.y, p.act.w, p.act.h, 0, 0, p.act.w, p.act.h);
+                            applyUltraFilterBackground(actCtx, p.act.w, p.act.h);
+
+                            const { data: { text: btnText } } = await worker.recognize(actCanv.toDataURL());
+                            let cleanBtn = btnText.toLowerCase();
+                            let isJoined = cleanBtn.includes('mute') || cleanBtn.includes('discuss') || cleanBtn.includes('unmute') || (!cleanBtn.includes('join') && cleanBtn.length > 2);
+
+                            if(isJoined) {
+                                const { data: { text: titleText } } = await worker.recognize(idCanv.toDataURL());
+                                let cleanScanned = titleText.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                                if (cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 60) {
+                                    matchFound = true; break;
+                                }
+                            }
+                        }
+                        await worker.terminate();
+                        resolve(matchFound);
+                    };
+                });
+                hideLoading();
+                if (!isTeleMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! Telegram Channel Name ya Join status verify nahi ho saka."); 
+                }
+                await finalizeDirectSuccess(); return;
+            }
+
+            else if (currentPlat === 'WebHits' && currentType === 'Visit') {
+                const isWebHitsMatched = await new Promise((resolve) => {
+                    const img = new Image(); img.src = URL.createObjectURL(ssFile);
+                    img.onload = async () => {
+                        const h = img.height; const w = img.width;
+                        const monitorGrid = document.getElementById('monitorCanvases');
+                        monitorGrid.innerHTML = `<div style="grid-column: span 2;"><p style="color:#fff; margin-bottom:2px;">WebHits Bottom 50% Scan Area:</p><canvas id="monWebCanvas" style="width:100%; border:1px solid red; background:#000;"></canvas></div>`;
+                        document.getElementById('aiMonitorBox').style.display = "block";
+
+                        const webCanvas = document.getElementById('monWebCanvas'); const webCtx = webCanvas.getContext('2d');
+                        const cropW = w; const cropH = h * 0.50; const cropX = 0; const cropY = h * 0.50; webCanvas.width = cropW; webCanvas.height = cropH; webCtx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+                        applyWebHitsFilterBackground(webCanvas);
+
+                        try {
+                            const worker = await Tesseract.createWorker('eng'); await worker.setParameters({ tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@_.- !?,():;/#&+=' });
+                            const { data: { text: webText } } = await worker.recognize(webCanvas.toDataURL());
+                            let cleanScanned = webText.toLowerCase().replace(/[^a-z0-9]/g, ''); let cleanTarget = targetSocialId.toLowerCase().replace(/[^a-z0-9]/g, '');
+                            let matchScore = calculateSimilarity(cleanTarget, cleanScanned) * 100;
+                            let isTextVerified = cleanScanned.includes(cleanTarget) || cleanTarget.includes(cleanScanned) || matchScore >= 60;
+                            await worker.terminate();
+                            
+                            if (isTextVerified) { resolve(true); } else { resolve(false); }
+                        } catch (err) { resolve(false); }
+                    };
+                });
+                hideLoading();
+                if (!isWebHitsMatched) { 
+                    document.getElementById('statusMsg').innerHTML = "<b style='color:red;'>❌ Verification Failed!</b>";
+                    return alert("❌ Verification Failed! Screenshot ke bottom 50% area me required Code/Text nahi mila."); 
+                }
+                await finalizeDirectSuccess(); return;
+            }
+        }
+    }
+}
+
+async function finalizeDirectSuccess() {
+    if (isProcessing) return; isProcessing = true; showLoading(); document.getElementById('statusMsg').innerText = "Updating Rewards... 💰";
+    try {
+        userData.coins += parseInt(currentTaskVal); userData.lifetimeEarnings += parseInt(currentTaskVal); userData.completedTasks.push(currentTaskId);
+        await db.ref("users/" + userData.uid).update({ coins: userData.coins, lifetime_earnings: userData.lifetimeEarnings, completed_tasks: userData.completedTasks });
+        
+        playCoinSound(); 
+        
+        hideLoading(); document.getElementById('screenshotSection').style.display = "none"; document.getElementById('statusMsg').innerHTML = "<b style='color:green;'>✅ Verified! Coins Added.</b>";
+        setTimeout(() => { document.getElementById('ytFinalModal').style.display = "none"; openFinalTask(currentType); }, 1500);
+    } catch (err) { hideLoading(); alert("❌ Error: Coins update nahi ho sake. Network check karein."); } finally { isProcessing = false; }
+}
+
+function closeQuiz() { document.getElementById('quizModal').style.display = "none"; }
+function closeExtraModal() { document.getElementById('extraRewardModal').style.display = "none"; }
+function closeTaskModal() { document.getElementById('taskModal').style.display = "none"; }
+function closeInstallModal() { document.getElementById('installModal').style.display = "none"; }
+function closeYtFinal() { 
+    document.getElementById('ytFinalModal').style.display = "none"; 
+    const iframeSec = document.getElementById('iframeSection');
+    if(iframeSec) iframeSec.style.display = "none"; 
+    const iframe = document.getElementById('offerwallIframe');
+    if(iframe) iframe.src = ""; 
+    running = false; 
+}
+function goTo(p) { window.location.href = p + "?uid=" + userData.uid; }
+
+function giveInstruction(message) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); const speech = new SpeechSynthesisUtterance(message); speech.lang = 'hi-IN'; speech.rate = 1; window.speechSynthesis.speak(speech);
+    }
+}
+
+document.body.addEventListener('click', () => { giveInstruction("earnmedia में आपका स्वागत है। simpal  टास्क पूरा करें और सिक्के कमाएं।"); }, { once: true }); 
+
+function applyOCRFilterBackground(ctx, width, height) {
+    let imgData = ctx.getImageData(0, 0, width, height); let data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) { let avg = (data[i] + data[i+1] + data[i+2]) / 3; let v = (avg > 170) ? 255 : 0; data[i] = data[i+1] = data[i+2] = v; }
+    ctx.putImageData(imgData, 0, 0);
+}
+
+function checkRedColorBackground(ctx, width, height) {
+    let imgData = ctx.getImageData(0, 0, width, height); let data = imgData.data; let redPixels = 0;
+    for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; if (r > 150 && g < 80 && b < 80) { redPixels++; } }
+    return redPixels > 30;
+}
+
+function ultraCleanText(str) { return str ? str.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/(.)\1+/g, '$1') : ""; }
+
+function applyUltraFilterBackground(ctx, width, height) {
+    let imgData = ctx.getImageData(0, 0, width, height); let data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) { let gray = (data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11); let v = (gray > 175) ? 255 : 0; data[i] = data[i+1] = data[i+2] = v; }
+    ctx.putImageData(imgData, 0, 0);
+}
+
+function checkSubscriptionStatusBackground(ctx, width, height) {
+    let imgData = ctx.getImageData(0, 0, width, height); let data = imgData.data; let validGreyPixels = 0; let total = data.length / 4;
+    for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; if (r >= 30 && r <= 60 && g >= 30 && g <= 60 && b >= 30 && b <= 60) { validGreyPixels++; } }
+    let grayDensity = (validGreyPixels / total) * 100; return grayDensity >= 25.0;
+}
+
+function calculateSimilarity(s1, s2) {
+    if (s2.includes(s1)) return 1.0; let longer = s1.length < s2.length ? s2 : s1; let shorter = s1.length < s2.length ? s1 : s2; if (longer.length === 0) return 1.0;
+    let distance = editDistanceBackground(s1, s2);
+    if (s2.length > s1.length) {
+        let bestScore = 0;
+        for(let i=0; i <= s2.length - s1.length; i++) {
+            let sub = s2.substring(i, i + s1.length); let subDist = editDistanceBackground(s1, sub); let score = (s1.length - subDist) / parseFloat(s1.length); if (score > bestScore) bestScore = score;
+        }
+        return bestScore;
+    }
+    return (longer.length - distance) / parseFloat(longer.length);
+}
+
+function editDistanceBackground(s1, s2) {
+    let costs = [];
+    for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+            if (i == 0) costs[j] = j;
+            else if (j > 0) { let newValue = costs[j - 1]; if (s1.charAt(i - 1) != s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1; costs[j - 1] = lastValue; lastValue = newValue; }
+        }
+        if (i > 0) costs[s2.length] = lastValue;
+    }
+    return costs[s2.length];
+}
+
+function applyUltraFilterLikeBackground(canvas) {
+    const ctx = canvas.getContext('2d'); let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); let data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) { let gray = (data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11); let v = (gray > 110) ? 255 : 0; data[i] = data[i+1] = data[i+2] = v; }
+    ctx.putImageData(imgData, 0, 0);
+}
+
+function detectShortsWhiteLikeBackground(canvas) {
+    const ctx = canvas.getContext('2d'); let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); let data = imgData.data; let solidWhitePixels = 0; let total = data.length / 4;
+    for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; if (r >= 240 && g >= 240 && b >= 240) { solidWhitePixels++; } }
+    let whiteDensity = (solidWhitePixels / total) * 100; return whiteDensity >= 8.0;
+}
+
+function detectFullVideoWhiteLikeBackground(canvas) {
+    const ctx = canvas.getContext('2d'); let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); let data = imgData.data; let solidWhitePixels = 0; let total = data.length / 4;
+    for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i+1], b = data[i+2]; if (r >= 240 && g >= 240 && b >= 240) { solidWhitePixels++; } }
+    let whiteDensity = (solidWhitePixels / total) * 100; return whiteDensity >= 5.8;
+}
+
+function applyWebHitsFilterBackground(canvas) {
+    const ctx = canvas.getContext('2d'); let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); let data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) { let gray = (data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11); let v = (gray > 160) ? 255 : 0; data[i] = data[i+1] = data[i+2] = v; }
+    ctx.putImageData(imgData, 0, 0);
+}
+
+function checkFacebookBlueLike(ctx, width, height) {
+    let imgData = ctx.getImageData(0, 0, width, height); let data = imgData.data;
+    let bluePixels = 0;
+    for (let i = 0; i < data.length; i += 4) {
+        let r = data[i], g = data[i+1], b = data[i+2];
+        if (b > 180 && r < 100 && g < 160) { bluePixels++; }
+    }
+    return bluePixels > 25; 
+}
+
+function checkFacebookFollowDensity(ctx, width, height) {
+    let imgData = ctx.getImageData(0, 0, width, height); let data = imgData.data;
+    let darkPixels = 0; let total = data.length / 4;
+    for (let i = 0; i < data.length; i += 4) {
+        let r = data[i], g = data[i+1], b = data[i+2];
+        if (r < 80 && g < 80 && b < 80) { darkPixels++; }
+    }
+    return (darkPixels / total) * 100 > 15;
+}
+</script>
+</body>
+</html>
